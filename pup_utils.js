@@ -26,7 +26,7 @@ module.exports = {
     saveCookies: saveCookies,
     deleteCookiesFile: deleteCookiesFile,
     getValue: getValue,
-    getHref: getHref
+    getAttr: getAttr
 };
 
 async function runBrowser(options) {
@@ -155,8 +155,8 @@ async function getValue(page, selector) {
     }, selector);
 }
 
-async function getHref(page, selector) {
+async function getAttr(page, selector, attr) {
     return await page.evaluate((selector) => {
-        return document.querySelector(selector).attr('href');
+        return document.querySelector(selector)[attr];
     }, selector);
 }
