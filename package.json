@@ -1,0 +1,17 @@
+{
+  "name": "facebook-marketplace-client",
+  "version": "0.0.1",
+  "description": "",
+  "main": "script.js",
+  "dependencies": {
+    "puppeteer": "^1.7.0",
+    "sleep": "^5.2.3"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "author": "Coya",
+  "license": "ISC"
+}
