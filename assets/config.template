@@ -1,5 +1,6 @@
 module.exports = {
     cookiesFile: 'assets/cookies.json',
+    inputFile: 'assets/input.xml',
     login: '',
     password: ''
 }
