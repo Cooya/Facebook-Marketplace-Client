@@ -25,8 +25,8 @@ module.exports = {
     loadCookies: loadCookies,
     saveCookies: saveCookies,
     deleteCookiesFile: deleteCookiesFile,
-    getValue: getValue,
-    getAttr: getAttr
+    value: value,
+    attribute: attribute
 };
 
 async function runBrowser(options) {
@@ -149,14 +149,20 @@ async function deleteCookiesFile(cookiesFile) {
     console.log('Cookies file deleted.');
 }
 
-async function getValue(page, selector) {
-    return await page.evaluate((selector) => {
-        return document.querySelector(selector).value
-    }, selector);
+function value(page, selector, value) {
+    return page.evaluate((selector, value) => {
+        var elt = document.querySelector(selector);
+        if(value !== undefined)
+            elt.value = value;
+        return elt.value
+    }, selector, value);
 }
 
-async function getAttr(page, selector, attr) {
-    return await page.evaluate((selector) => {
-        return document.querySelector(selector)[attr];
-    }, selector);
+async function attribute(page, selector, attribute, value) {
+    return await page.evaluate((selector, attribute, value) => {
+        var elt = document.querySelector(selector);
+        if(value !== undefined)
+            elt[attribute] = value;
+        return elt[attribute];
+    }, selector, attribute, value);
 }

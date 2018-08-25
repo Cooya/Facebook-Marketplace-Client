@@ -2,8 +2,10 @@ module.exports = {
     picturesFolder: 'assets/pictures/',
     cookiesFile: 'assets/cookies.json',
     inputFile: 'assets/input.xml',
+    dbFile: 'assets/db.json',
     login: '',
     password: '',
     itemCategory: 'Property For Sale',
-    headless: true
+    headless: true,
+    commit: false
 }
