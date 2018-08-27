@@ -20,7 +20,7 @@ async function loadItems() {
     if(config.inputFile && await utils.fileExists(config.inputFile)) {
         const xml = await utils.readXMLFile(config.inputFile);
         const items = xml.xml.annonce;
-        const requiredKeys = ['link', 'title', 'price', 'location', 'pictures'];
+        const requiredKeys = ['link', 'title', 'price', 'location', 'description', 'pictures'];
 
         // process items
         console.log(items.length + ' items to process.');
