@@ -17,7 +17,7 @@ async function loadItems() {
         itemsCollection = db.addCollection('items', {unique: 'link'});
 
     // read input XML file
-    if(config.inputFile) {
+    if(config.inputFile && await utils.fileExists(config.inputFile)) {
         const xml = await utils.readXMLFile(config.inputFile);
         const items = xml.xml.annonce;
         const requiredKeys = ['link', 'title', 'price', 'location', 'pictures'];

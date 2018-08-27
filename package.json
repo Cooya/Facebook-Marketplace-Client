@@ -14,7 +14,8 @@
   "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index.js"
+    "start": "node index.js",
+    "download-input": "node input_downloader.js"
   },
   "author": "Coya",
   "license": "ISC"

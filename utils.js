@@ -14,10 +14,13 @@ async function readXMLFile(filePath) {
     return parseXML(xml);
 }
 
-async function downloadFile(url, destFolder) {
+async function downloadFile(url, destFolder, fileName = null) {
     await mkdir(destFolder);
 
-    const filePath = path.join(destFolder, path.basename(url));
+    if(!fileName)
+        fileName = path.basename(url);
+
+    const filePath = path.join(destFolder, fileName);
     const file = fs.createWriteStream(filePath);
 
     return new Promise((resolve, reject) => {
@@ -28,7 +31,18 @@ async function downloadFile(url, destFolder) {
     });
 }
 
+async function fileExists(filePath) {
+    try {
+        await util.promisify(fs.access)(filePath);
+        return true;
+    }
+    catch(e) {
+        return false;
+    }
+}
+
 module.exports = {
     readXMLFile: readXMLFile,
-    downloadFile: downloadFile
+    downloadFile: downloadFile,
+    fileExists: fileExists
 }
