@@ -114,7 +114,7 @@ async function fillSellForm(page, item, commit = false) {
     if(commit) {
         await page.click('div[role=dialog] button[type="submit"][aria-haspopup="true"]');
         await page.waitForSelector('div[role=dialog] button[type="submit"][aria-haspopup="true"]', {hidden: true});
-        await sleep.sleep(10);
+        await sleep.sleep(utils.getRandomNumber(config.intervalBetweenSellings[0], config.intervalBetweenSellings[1]));
     }
     else { // discard the form
         await page.click('button.layerCancel');
@@ -122,6 +122,6 @@ async function fillSellForm(page, item, commit = false) {
         await sleep.msleep(500);
         await page.click('div.uiOverlayFooter button:nth-child(1)');
         await page.waitForSelector('div[role=dialog] button[type="submit"][aria-haspopup="true"]', {hidden: true});
-        await sleep.sleep(5);
+        await sleep.sleep(2);
     }
 }

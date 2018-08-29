@@ -7,5 +7,6 @@ module.exports = {
     password: '',
     itemCategory: 'Property For Sale',
     headless: true,
-    commit: false
+    commit: false,
+    intervalBetweenSellings: [30, 300]
 }

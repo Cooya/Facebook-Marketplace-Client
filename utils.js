@@ -41,8 +41,13 @@ async function fileExists(filePath) {
     }
 }
 
+function getRandomNumber(min, max) {
+    return Math.random() * (max - min) + min;
+}
+
 module.exports = {
     readXMLFile: readXMLFile,
     downloadFile: downloadFile,
-    fileExists: fileExists
+    fileExists: fileExists,
+    getRandomNumber: getRandomNumber
 }
