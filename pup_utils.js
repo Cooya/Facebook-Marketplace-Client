@@ -39,7 +39,7 @@ async function createPage(browser, cookiesFile) {
     const page = await browser.newPage();
     await page.setUserAgent('Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:57.0) Gecko/20100101 Firefox/57.0');
     await page.setViewport({width: 1600, height: 900});
-    await page.setExtraHTTPHeaders({'Accept-Language': 'en-US'});
+    await page.setExtraHTTPHeaders({'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8'});
     if(cookiesFile) await loadCookies(page, cookiesFile);
     console.debug('Page created.');
     return page;
