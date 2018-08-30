@@ -10,7 +10,8 @@ const browserOptions = {
         '--no-sandbox',
         '--disable-setuid-sandbox',
         '--disable-notifications',
-        `--window-size=1600,900`
+        '--window-size=1600,900',
+        '--lang=en_US'
     ],
     headless: true
 };
@@ -37,10 +38,8 @@ async function createPage(browser, cookiesFile) {
     console.debug('Creating page...');
     const page = await browser.newPage();
     await page.setUserAgent('Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:57.0) Gecko/20100101 Firefox/57.0');
-    await page.setViewport({
-        width: 1600,
-        height: 900
-    });
+    await page.setViewport({width: 1600, height: 900});
+    await page.setExtraHTTPHeaders({'Accept-Language': 'en-US'});
     if(cookiesFile) await loadCookies(page, cookiesFile);
     console.debug('Page created.');
     return page;
