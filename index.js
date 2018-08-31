@@ -7,7 +7,7 @@ const pup = require('./pup_utils');
 const startingPointUrl = 'https://www.facebook.com/marketplace/';
 
 (async function main() {
-    const items = await manager.loadItems();
+    const items = await manager.loadItems(config.inputFile);
     if(!items.length) {
         console.warn('No item to process.');
         return;

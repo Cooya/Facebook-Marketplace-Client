@@ -49,5 +49,6 @@ module.exports = {
     readXMLFile: readXMLFile,
     downloadFile: downloadFile,
     fileExists: fileExists,
+    deleteFile: util.promisify(fs.unlink),
     getRandomNumber: getRandomNumber
 }

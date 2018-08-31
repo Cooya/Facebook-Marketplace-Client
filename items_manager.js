@@ -10,7 +10,7 @@ const saveDatabase = util.promisify(db.saveDatabase.bind(db));
 const requiredKeys = ['link', 'title', 'price', 'location', 'description', 'pictures'];
 let itemsCollection;
 
-async function loadItems() {
+async function loadItems(inputFile) {
     await loadDatabase({});
 
     // load or create the items collection
@@ -19,10 +19,11 @@ async function loadItems() {
         itemsCollection = db.addCollection('items', {unique: 'link'});
 
     // if input file exists
-    if(config.inputFile && await utils.fileExists(config.inputFile)) {
+    if(inputFile && await utils.fileExists(inputFile)) {
+        console.log('Loading items from file "' + inputFile + '"...');
 
         // read xml file
-        const xml = await utils.readXMLFile(config.inputFile);
+        const xml = await utils.readXMLFile(inputFile);
 
         // process items
         const processedItems = await processItems(xml.xml.annonce, requiredKeys);
@@ -43,13 +44,21 @@ async function processItems(items, requiredKeys = []) {
         processedItem.title = item.type[0];
         processedItem.price = item.prix[0].replace(',00 EUR', '');
         processedItem.location = item.ville && item.ville[0];
-        processedItem.description = item.descriptif[0];
+        processedItem.description = item.descriptif && item.descriptif[0];
         processedItem.category = config.itemCategory;
             
         if(item.photos) {
             processedItem.pictures = [];
-            for(let photo of item.photos[0].photo)
-                processedItem.pictures.push(await utils.downloadFile(photo, config.picturesFolder));
+            for(let photo of item.photos[0].photo) {
+                let picturePath = await utils.downloadFile(photo, config.picturesFolder);
+                if(picturePath)
+                    processedItem.pictures.push(picturePath);
+            }
+            if(!processedItem.pictures.length) {
+                console.error('Unexpected issue when reading pictures from item "' + processedItem.link + '".');
+                //console.error(processedItem);
+                return null;
+            }
         }
 
         for(let key of requiredKeys) {
@@ -75,8 +84,8 @@ async function saveItemsIntoDatabase(items) {
             item.processed = false;
             itemsCollection.insert(item);
             //console.log('Item "' + item.link + '" inserted into database.');
+            counter++;
         }
-        counter++;
     }
     
     await saveDatabase();

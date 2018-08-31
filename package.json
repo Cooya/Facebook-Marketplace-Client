@@ -6,14 +6,16 @@
   "dependencies": {
     "lokijs": "^1.5.5",
     "mkdirp": "^0.5.1",
+    "mocha": "^5.2.0",
     "puppeteer": "^1.7.0",
     "request": "^2.88.0",
+    "simple-mock": "^0.8.0",
     "sleep": "^5.2.3",
     "xml2js": "^0.4.19"
   },
   "devDependencies": {},
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "mocha",
     "start": "node index.js",
     "download-input": "node input_downloader.js"
   },
