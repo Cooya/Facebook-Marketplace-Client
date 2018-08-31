@@ -17,7 +17,7 @@ module.exports  = {
   login: 'TO_COMPLETE', // votre identifiant Facebook
   password: 'TO_COMPLETE', // votre mot de passe Facebook
   itemCategory: 'Property For Sale', // la catégorie des objets à mettre en vente (doit être en anglais)
-  headless: false, // détermine si le navigateur est affiché ou non (mettre à true si vous voulez voir ce qu'il se passe pendant l'exécution du script)
+  headless: false, // détermine si le navigateur est affiché ou non (laisser à false si vous voulez voir ce qu'il se passe pendant l'exécution du script)
   commit: false, // lorsque cette valeur vaut false, la mise en vente est simplement simulée, mettre à true si vous souhaitez réellement mettre les items en vente
   intervalBetweenSellings: [30, 300] // intervalle minimum et maximum en secondes entre chaque vente
 }
