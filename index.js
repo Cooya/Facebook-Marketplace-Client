@@ -39,7 +39,8 @@ const startingPointUrl = 'https://www.facebook.com/marketplace/';
         console.log('Selling has succeeded.');
     }
 
-    //await browser.close();
+    console.log('Process done.');
+    await browser.close();
 })();
 
 async function logIn(page, login, password) {
