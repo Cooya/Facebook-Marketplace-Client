@@ -17,7 +17,8 @@
   "scripts": {
     "test": "mocha",
     "start": "node index.js",
-    "download-input": "node input_downloader.js"
+    "download-input": "node input_downloader.js",
+    "reset": "rm -f assets/cookies.json && rm -f assets/db.json && rm -rf node_modules"
   },
   "author": "Coya",
   "license": "ISC"
