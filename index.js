@@ -35,7 +35,7 @@ const startingPointUrl = 'https://www.facebook.com/marketplace/';
         console.log('Putting item "' + item.title + '" to sell...');
         await fillSellForm(page, item, config.commit);
         if(config.commit)
-            await manager.markItemAsProcessed(item.link);
+            await manager.markItemAsProcessed(item.id);
         console.log('Selling has succeeded.');
     }
 
