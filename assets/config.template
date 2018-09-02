@@ -2,6 +2,7 @@ module.exports = {
     picturesFolder: 'assets/pictures/',
     cookiesFile: 'assets/cookies.json',
     inputFile: 'assets/input.xml',
+    outputFile: 'assets/output.xml',
     dbFile: 'assets/db.json',
     login: '',
     password: '',

@@ -16,8 +16,11 @@
   "devDependencies": {},
   "scripts": {
     "test": "mocha",
-    "start": "node index.js",
-    "download-input": "node input_downloader.js",
+    "post-ads": "node src/index.js --mode posting",
+    "edit-ads": "node src/index.js --mode edition",
+    "remove-ads": "node src/index.js --mode deletion",
+    "download-input": "node src/input_downloader.js",
+    "generate-output": "node src/output_generator.js",
     "reset": "rm -f assets/cookies.json && rm -f assets/db.json && rm -rf node_modules"
   },
   "author": "Coya",

@@ -1,8 +1,8 @@
 const loki = require('lokijs');
 const util = require('util');
 
-const config = require('./config');
-const utils = require('./utils');
+const config = require('../config');
+const utils = require('./utils/utils');
 
 const db = new loki(config.dbFile, {verbose: true});
 const loadDatabase = util.promisify(db.loadDatabase.bind(db));
@@ -10,6 +10,14 @@ const saveDatabase = util.promisify(db.saveDatabase.bind(db));
 const requiredKeys = ['link', 'title', 'price', 'location', 'description', 'pictures'];
 const linkRegex = /https:\/\/www\.consortium-immobilier\.fr\/annonce-([0-9]+)\.html/;
 let itemsCollection;
+
+async function getProcessedItems() {
+    await loadDatabase({});
+    const itemsCollection = db.getCollection('items');
+    if(!itemsCollection)
+        return [];
+    return itemsCollection.find({processed: true});
+}
 
 async function loadItems(inputFile) {
     await loadDatabase({});
@@ -123,6 +131,7 @@ async function markItemAsProcessed(id) {
 }
 
 module.exports = {
+    getProcessedItems: getProcessedItems,
     loadItems: loadItems,
     markItemAsProcessed: markItemAsProcessed
 };

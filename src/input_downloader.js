@@ -1,7 +1,7 @@
 const path = require('path');
 
-const config = require('./config');
-const utils = require('./utils');
+const config = require('../config');
+const utils = require('./utils/utils');
 
 const apiUrl = 'https://www.consortium-immobilier.fr/nxt-version/outils/db/xml.php';
 

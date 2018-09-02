@@ -6,12 +6,19 @@ const util = require('util');
 const xml2js = require('xml2js');
 
 const readFile = util.promisify(fs.readFile);
+const writeFile = util.promisify(fs.writeFile);
 const parseXML = util.promisify(xml2js.parseString);
 const mkdir = util.promisify(mkdirp);
+const builder = new xml2js.Builder({rootName: 'xml'});
 
 async function readXMLFile(filePath) {
     const xml = await readFile(filePath);
     return parseXML(xml);
+}
+
+async function writeXMLFile(filePath, content) {
+    const xml = builder.buildObject(content);
+    await writeFile(filePath, xml);
 }
 
 async function downloadFile(url, destFolder, fileName = null) {
@@ -47,6 +54,7 @@ function getRandomNumber(min, max) {
 
 module.exports = {
     readXMLFile: readXMLFile,
+    writeXMLFile: writeXMLFile,
     downloadFile: downloadFile,
     fileExists: fileExists,
     deleteFile: util.promisify(fs.unlink),

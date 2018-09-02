@@ -1,47 +1,48 @@
 const sleep = require('sleep');
 
-const config = require('./config');
-const manager = require('./items_manager');
-const pup = require('./pup_utils');
+const pup = require('./utils/pup_utils');
 
-const startingPointUrl = 'https://www.facebook.com/marketplace/';
+class ItemsSeller {
+    startingPointUrl = 'https://www.facebook.com/marketplace/';
 
-(async function main() {
-    const items = await manager.loadItems(config.inputFile);
-    if(!items.length) {
-        console.warn('No item to process.');
-        return;
+    constructor(cookiesFile, options = {}) {
+        this.cookiesFile = cookiesFile;
+
+        // open browser and load cookies
+        this.browser = await pup.runBrowser({headless: config.headless});
+        this.page = await pup.createPage(this.browser, cookiesFile);
+        await pup.loadCookies(this.page, cookiesFile);
+    }
+    
+    goToMarketPlace() {
+        // go to the marketplace and log in if needed
+        await pup.goTo(this.page, ItemsSeller.startingPointUrl);
+        const loginForm = await this.page.$('#login_form');
+        if(loginForm) {
+            if(!config.login || !config.password)
+                throw Error('Missing credential declaration in the config file.');
+            await logIn(this.page, config.login, config.password);
+            await this.page.waitForNavigation();
+            await sleep.sleep(1);
+            await pup.saveCookies(this.page, config.cookiesFile);
+        }
     }
 
-    // open browser and load cookies
-    const browser = await pup.runBrowser({headless: config.headless});
-    const page = await pup.createPage(browser, config.cookiesFile);
-    await pup.loadCookies(page, config.cookiesFile);
-
-    // go to the marketplace and log in if needed
-    await pup.goTo(page, startingPointUrl);
-    const loginForm = await page.$('#login_form');
-    if(loginForm) {
-        if(!config.login || !config.password)
-            throw Error('Missing credential declaration in the config file.');
-        await logIn(page, config.login, config.password);
-        await page.waitForNavigation();
-        await sleep.sleep(1);
-        await pup.saveCookies(page, config.cookiesFile);
+    sellItems(items, commit = false) {
+        for(let item of items) {
+            console.log('Putting item "' + item.title + '" to sell...');
+            await fillSellForm(this.page, item, commit);
+            if(commit)
+                await manager.markItemAsProcessed(item.id);
+            console.log('Selling has succeeded.');
+        }
     }
 
-    // put items to sell
-    for(let item of items) {
-        console.log('Putting item "' + item.title + '" to sell...');
-        await fillSellForm(page, item, config.commit);
-        if(config.commit)
-            await manager.markItemAsProcessed(item.id);
-        console.log('Selling has succeeded.');
+    close() {
+        await this.browser.close();
+        console.log('Seller closed.');
     }
-
-    console.log('Process done.');
-    await browser.close();
-})();
+}
 
 async function logIn(page, login, password) {
     console.log('Logging in...');
