@@ -2,20 +2,22 @@
   "name": "facebook-marketplace-client",
   "version": "0.0.1",
   "description": "",
-  "main": "script.js",
+  "main": "src/index.js",
   "dependencies": {
     "lokijs": "^1.5.5",
     "mkdirp": "^0.5.1",
-    "mocha": "^5.2.0",
     "puppeteer": "^1.7.0",
     "request": "^2.88.0",
-    "simple-mock": "^0.8.0",
     "sleep": "^5.2.3",
     "xml2js": "^0.4.19"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "mocha": "^5.2.0",
+    "simple-mock": "^0.8.0"
+  },
   "scripts": {
     "test": "mocha",
+    "start": "node src/index.js --mode posting",
     "post-ads": "node src/index.js --mode posting",
     "edit-ads": "node src/index.js --mode edition",
     "remove-ads": "node src/index.js --mode deletion",

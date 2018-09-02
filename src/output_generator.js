@@ -10,6 +10,7 @@ const utils = require('./utils/utils');
     }
     
     items = items.map((item) => {
+        delete item['processed'];
         delete item['meta'];
         delete item['$loki'];
 

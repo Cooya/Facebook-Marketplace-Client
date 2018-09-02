@@ -2,128 +2,134 @@ const sleep = require('sleep');
 
 const pup = require('./utils/pup_utils');
 
-class ItemsSeller {
-    startingPointUrl = 'https://www.facebook.com/marketplace/';
+const startingPointUrl = 'https://www.facebook.com/marketplace/';
 
-    constructor(cookiesFile, options = {}) {
-        this.cookiesFile = cookiesFile;
+module.exports = class ItemsSeller {
 
+    constructor(config) {
+        this.login = config.login;
+        this.password = config.password;
+        this.cookiesFile = config.cookiesFile;
+        this.commit = config.commit
+        this.intervalBetweenSellings = config.intervalBetweenSellings;
+        this.headless = config.headless;
+    }
+
+    async open() {
         // open browser and load cookies
-        this.browser = await pup.runBrowser({headless: config.headless});
-        this.page = await pup.createPage(this.browser, cookiesFile);
-        await pup.loadCookies(this.page, cookiesFile);
+        this.browser = await pup.runBrowser({headless: this.headless});
+        this.page = await pup.createPage(this.browser, this.cookiesFile);
+        await pup.loadCookies(this.page, this.cookiesFile);
     }
     
-    goToMarketPlace() {
+    async goToMarketPlace() {
         // go to the marketplace and log in if needed
-        await pup.goTo(this.page, ItemsSeller.startingPointUrl);
+        await pup.goTo(this.page, startingPointUrl);
         const loginForm = await this.page.$('#login_form');
         if(loginForm) {
-            if(!config.login || !config.password)
-                throw Error('Missing credential declaration in the config file.');
-            await logIn(this.page, config.login, config.password);
+            await logIn.call(this);
             await this.page.waitForNavigation();
             await sleep.sleep(1);
-            await pup.saveCookies(this.page, config.cookiesFile);
+            await pup.saveCookies(this.page, this.cookiesFile);
         }
     }
 
-    sellItems(items, commit = false) {
+    async sellItems(items) {
         for(let item of items) {
             console.log('Putting item "' + item.title + '" to sell...');
-            await fillSellForm(this.page, item, commit);
-            if(commit)
+            await fillSellForm.call(this, item);
+            if(this.commit)
                 await manager.markItemAsProcessed(item.id);
             console.log('Selling has succeeded.');
         }
     }
 
-    close() {
+    async close() {
         await this.browser.close();
         console.log('Seller closed.');
     }
 }
 
-async function logIn(page, login, password) {
+logIn = async function() {
     console.log('Logging in...');
-    const loginValue = await pup.value(page, '#email');
+    const loginValue = await pup.value(this.page, '#email');
     if(!loginValue) {
-        await page.type('#email', login);
+        await this.page.type('#email', this.login);
         await sleep.msleep(500);
     }
-    await page.type('#pass', password);
+    await this.page.type('#pass', this.password);
     await sleep.msleep(500);
-    await page.click("#loginbutton");
+    await this.page.click("#loginbutton");
     console.log('Logged in.');
 }
 
-async function fillSellForm(page, item, commit = false) {
+fillSellForm = async function(item) {
     // open selling form modal
-    await page.click('div[role=navigation]:nth-child(1) button');
-    await page.waitForSelector('div[role=dialog] input');
+    await this.page.click('div[role=navigation]:nth-child(1) button');
+    await this.page.waitForSelector('div[role=dialog] input');
     await sleep.sleep(1);
 
     // remove previous pictures if needed
-    while(await page.$('button[title="Remove photo"]')) {
-        await page.click('button[title="Remove photo"]');
+    while(await this.page.$('button[title="Remove photo"]')) {
+        await this.page.click('button[title="Remove photo"]');
         await sleep.msleep(500);
     }
 
     // empty description if needed
-    const previousDescriptionValue = await pup.attribute(page, 'div[aria-multiline="true"]', 'textContent');
+    const previousDescriptionValue = await pup.attribute(this.page, 'div[aria-multiline="true"]', 'textContent');
     if(previousDescriptionValue) {
-        await page.type('div[aria-multiline="true"]', '');
-        await page.keyboard.down('Control');
-        await page.keyboard.down('KeyA');
-        await page.keyboard.up('KeyA');
-        await page.keyboard.up('Control');
-        await page.keyboard.press('Delete');
+        await this.page.type('div[aria-multiline="true"]', '');
+        await this.page.keyboard.down('Control');
+        await this.page.keyboard.down('KeyA');
+        await this.page.keyboard.up('KeyA');
+        await this.page.keyboard.up('Control');
+        await this.page.keyboard.press('Delete');
     }
     
     // title, price and description
-    await page.type('input[placeholder="What are you selling?"]', item.title);
+    await this.page.type('input[placeholder="What are you selling?"]', item.title);
     await sleep.msleep(500);
-    await page.type('input[placeholder="Price"]', item.price);
+    await this.page.type('input[placeholder="Price"]', item.price);
     await sleep.msleep(500);
-    await page.type('div[aria-multiline="true"]', item.description);
+    await this.page.type('div[aria-multiline="true"]', item.description);
     await sleep.msleep(500);
 
     // location
-    await page.click('input[placeholder="Add Location"]');
+    await this.page.click('input[placeholder="Add Location"]');
     await sleep.msleep(500);
-    await page.type('input[placeholder="Add Location"]', item.location);
+    await this.page.type('input[placeholder="Add Location"]', item.location);
     await sleep.msleep(2000);
-    await page.keyboard.press('ArrowDown');
+    await this.page.keyboard.press('ArrowDown');
     await sleep.msleep(500);
-    await page.keyboard.press('Enter');
+    await this.page.keyboard.press('Enter');
     await sleep.msleep(500);
 
     // category
-    await page.type('input[placeholder="Select a Category"]', item.category);
+    await this.page.type('input[placeholder="Select a Category"]', item.category);
     await sleep.msleep(500);
-    await page.keyboard.press('ArrowDown');
+    await this.page.keyboard.press('ArrowDown');
     await sleep.msleep(500);
-    await page.keyboard.press('Enter');
+    await this.page.keyboard.press('Enter');
     await sleep.msleep(500);
 
     // pictures
-    await (await page.$('input[title="Choose a file to upload"]')).uploadFile(...item.pictures);
-    await page.waitForSelector('div[role=dialog] button[type="submit"][aria-haspopup="true"]:disabled', {hidden: true}) // :not('disabled') not working
+    await (await this.page.$('input[title="Choose a file to upload"]')).uploadFile(...item.pictures);
+    await this.page.waitForSelector('div[role=dialog] button[type="submit"][aria-haspopup="true"]:disabled', {hidden: true}) // :not('disabled') not working
     console.log('Pictures uploaded.')
     await sleep.sleep(1);
 
     // submit the form
-    if(commit) {
-        await page.click('div[role=dialog] button[type="submit"][aria-haspopup="true"]');
-        await page.waitForSelector('div[role=dialog] button[type="submit"][aria-haspopup="true"]', {hidden: true});
-        await sleep.sleep(utils.getRandomNumber(config.intervalBetweenSellings[0], config.intervalBetweenSellings[1]));
+    if(this.commit) {
+        await this.page.click('div[role=dialog] button[type="submit"][aria-haspopup="true"]');
+        await this.page.waitForSelector('div[role=dialog] button[type="submit"][aria-haspopup="true"]', {hidden: true});
+        await sleep.sleep(utils.getRandomNumber(intervalBetweenSellings[0], intervalBetweenSellings[1]));
     }
     else { // discard the form
-        await page.click('button.layerCancel');
-        await page.waitForSelector('div.uiOverlayFooter');
+        await this.page.click('button.layerCancel');
+        await this.page.waitForSelector('div.uiOverlayFooter');
         await sleep.msleep(500);
-        await page.click('div.uiOverlayFooter button:nth-child(1)');
-        await page.waitForSelector('div[role=dialog] button[type="submit"][aria-haspopup="true"]', {hidden: true});
+        await this.page.click('div.uiOverlayFooter button:nth-child(1)');
+        await this.page.waitForSelector('div[role=dialog] button[type="submit"][aria-haspopup="true"]', {hidden: true});
         await sleep.sleep(2);
     }
 }
