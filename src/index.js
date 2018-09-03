@@ -12,9 +12,9 @@ const ItemsSeller = require('./items_seller');
     }
 
     const itemsManager = new ItemsManager(config);
-    const items = await itemsManager.loadItems();
 
     if(!mode || mode == 'posting') {
+        const items = await itemsManager.loadItems();
         if(!items.length) {
             console.error('No item to process.');
             process.exit(1);
@@ -34,10 +34,10 @@ const ItemsSeller = require('./items_seller');
         await itemsSeller.close();
     }
     else if(mode == 'edition') {
-        
+        console.log('Not implemented yet.');
     }
     else if(mode == 'deletion') {
-        
+        console.log('Not implemented yet.');
     }
     else {
         console.error('Invalid provided mode.');

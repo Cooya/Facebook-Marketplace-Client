@@ -54,11 +54,32 @@ module.exports = class ItemsSeller {
 
     async sellItems(items) {
         for(let item of items) {
-            console.log('Putting item "' + item.title + '" to sell...');
+            console.log('Selling item "' + item.title + '"...');
+            await openSellFormModal.call(this);
             await fillSellForm.call(this, item);
             if(this.commit)
                 await manager.markItemAsProcessed(item.id);
             console.log('Selling has succeeded.');
+        }
+    }
+
+    async editItems(items) {
+        for(let item of items) {
+            console.log('Updating item "' + item.title + '"...');
+            await manageItem.call(this, item, 'edit');
+            if(this.commit)
+                await manager.editItem(item.id);
+            console.log('Item has been updated successfully.');
+        }
+    }
+
+    async removeItems(items) {
+        for(let item of items) {
+            console.log('Removing item "' + item.title + '"...');
+            await manageItem.call(this, item, 'remove');
+            if(this.commit)
+                await manager.removeItem(item.id);
+            console.log('Item has been removed successfully.');
         }
     }
 
@@ -68,7 +89,7 @@ module.exports = class ItemsSeller {
     }
 };
 
-logIn = async function() {
+async function logIn() {
     console.log('Logging in...');
     const loginValue = await pup.value(this.page, '#email');
     if(!loginValue) {
@@ -81,17 +102,22 @@ logIn = async function() {
     console.log('Logged in.');
 }
 
-fillSellForm = async function(item) {
-    // open selling form modal
+async function openSellFormModal() {
     await this.page.click('div[role=navigation]:nth-child(1) button');
     await this.page.waitForSelector('div[role=dialog] input');
     await sleep.sleep(1);
+}
 
-    // remove previous pictures if needed
-    while(await this.page.$('button[title="Remove photo"]')) {
-        await this.page.click('button[title="Remove photo"]');
-        await sleep.msleep(500);
-    }
+async function fillSellForm(item) {
+    const cleanPictures = async () => {
+        const selector = 'button[title="Remove photo"], div.fbScrollableAreaContent button[title="Remove"]';
+        while(await this.page.$(selector)) {
+            await this.page.click(selector);
+            await sleep.msleep(500);
+        }
+    };
+
+    await cleanPictures(); // remove previous pictures if needed
 
     // empty description if needed
     const previousDescriptionValue = await pup.attribute(this.page, 'div[aria-multiline="true"]', 'textContent');
@@ -131,16 +157,34 @@ fillSellForm = async function(item) {
     await sleep.msleep(500);
 
     // pictures
-    await (await this.page.$('input[title="Choose a file to upload"]')).uploadFile(...item.pictures);
-    await this.page.waitForSelector('div[role=dialog] button[type="submit"][aria-haspopup="true"]:disabled', {hidden: true}) // :not('disabled') not working
-    console.log('Pictures uploaded.')
+    for(let i = 0; i < 3; ++i) {
+        await (await this.page.$('input[title="Choose a file to upload"]')).uploadFile(...item.pictures);
+        try {
+            await this.page.waitForSelector('div[role=dialog] button[type="submit"][aria-haspopup="true"]:disabled', {hidden: true}) // :not('disabled') not working
+            break;
+        }
+        catch(e) {
+            if(await this.page.$('div[aria-haspopup="true"] p')) { // error in pictures upload
+                console.error('Error in pictures upload, trying again...');
+                await cleanPictures();
+            }
+            else throw e;
+        }
+    }
+    if(await this.page.$('div[aria-haspopup="true"] p')) {
+        console.error('One or several pictures are invalid for the item "' + item.title + '".');
+        await sleep.sleep(1);
+        return;
+    }
+    console.log('Pictures uploaded successfully.');
     await sleep.sleep(1);
+    
 
     // submit the form
     if(this.commit) {
         await this.page.click('div[role=dialog] button[type="submit"][aria-haspopup="true"]');
         await this.page.waitForSelector('div[role=dialog] button[type="submit"][aria-haspopup="true"]', {hidden: true});
-        await sleep.sleep(utils.getRandomNumber(intervalBetweenSellings[0], intervalBetweenSellings[1]));
+        await sleep.sleep(utils.getRandomNumber(this.intervalBetweenSellings[0], this.intervalBetweenSellings[1]));
     }
     else { // discard the form
         await this.page.click('button.layerCancel');
@@ -150,4 +194,52 @@ fillSellForm = async function(item) {
         await this.page.waitForSelector('div[role=dialog] button[type="submit"][aria-haspopup="true"]', {hidden: true});
         await sleep.sleep(2);
     }
+}
+
+async function manageItem(item, action) {
+    const actions = {
+        'edit': editItem,
+        'remove': removeItem
+    };
+
+    if(!this.page.url() != marketplaceSellingUrl) {
+        await this.goToMarketPlace(marketplaceSellingUrl);
+        await sleep.msleep(500);
+    }
+
+    const itemContainers = await this.page.$$('div.clearfix [direction="left"]');
+    for(let itemContainer of itemContainers) {
+        if(await itemContainer.$('span[title="' + item.title + '"')) {
+            await this.page.click('a > span > i[alt=""]');
+            await this.page.waitForSelector('li[role="presentation"] > a[role="menuitem"]');
+            await sleep.msleep(500);
+            actions[action].call(this, item);
+            break;
+        }
+    }
+}
+
+async function editItem(item) {
+    await this.page.click('li[role="presentation"]:nth-child(1) > a[role="menuitem"]');
+    await this.page.waitForSelector('div[role=dialog] input');
+    await sleep.sleep(1);
+    await fillSellForm.call(this, item);
+    console.log('Item updated sucessfully.');
+}
+
+async function removeItem() {
+    await this.page.click('li[role="presentation"]:nth-child(1) > a[role="menuitem"]');
+    await this.page.waitForSelector('div[data-testid="simple_xui_dialog_footer"]');
+    await sleep.msleep(500);
+    if(this.commit) {
+        await this.page.click('div[data-testid="simple_xui_dialog_footer"] a[action="cancel"]:nth-child(2)');
+        await this.page.waitForSelector('div[data-testid="simple_xui_dialog_footer"]', {hidden: true});
+        await sleep.sleep(utils.getRandomNumber(this.intervalBetweenSellings[0], this.intervalBetweenSellings[1]));
+    }
+    else {
+        await this.page.click('div[data-testid="simple_xui_dialog_footer"] a[action="cancel"]:nth-child(1)');
+        await this.page.waitForSelector('div[data-testid="simple_xui_dialog_footer"]', {hidden: true});
+        await this.page.sleep(2);
+    }
+    console.log('Item removed sucessfully.');
 }
