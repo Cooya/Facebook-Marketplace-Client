@@ -13,6 +13,7 @@ module.exports  = {
   picturesFolder: 'assets/pictures/',
   cookiesFile: 'assets/cookies.json',
   inputFile: 'assets/input.xml', // fichier d'input contenant les items à mettre en vente
+  outputFile: 'assets/output.xml', // fichier d'output généré en sortie
   dbFile: 'assets/db.json', // fichier contenant le datastore (base de données portable) du projet
   login: 'TO_COMPLETE', // votre identifiant Facebook
   password: 'TO_COMPLETE', // votre mot de passe Facebook
@@ -24,13 +25,29 @@ module.exports  = {
 ```
 
 ## Exécution
-Avant de lancer le script, il est nécessaire de télécharger un fichier XML qui fera office de fichier d'entrée pour compléter la base de données. Pour télécharger ce fichier depuis l'API de consortium-immobilier.fr, lancer la commande suivante :
-```
+Avant de pouvoir poster des annonces, il est nécessaire de télécharger un fichier XML qui fera office de fichier d'entrée pour compléter la base de données. Pour télécharger ce fichier depuis l'API de consortium-immobilier.fr, lancer la commande suivante :
+```bash
 npm run download-input
 ```
-Et enfin, pour lancer le script :
-```
+Pour lancer la mise en vente d'annonces :
+```bash
 npm start
+```
+ou
+```bash
+npm run post-ads
+```
+Pour lancer l'édition d'annonces existantes :
+```bash
+npm run edit-ads
+```
+Pour lancer la suppression d'annonces en ligne :
+```bash
+npm run remove-ads
+```
+Pour générer un fichier d'output listant les annonces postées :
+```bash
+npm run generate-output
 ```
 ## Achitecture
 Le projet fait appel à [Puppeteer](https://github.com/GoogleChrome/puppeteer), un driver NodeJS pour Google Chrome headless et [LokiJS](http://lokijs.org), une base de données in-memory portable.  
