@@ -2,7 +2,8 @@ const sleep = require('sleep');
 
 const pup = require('./utils/pup_utils');
 
-const startingPointUrl = 'https://www.facebook.com/marketplace/';
+const marketplaceUrl = 'https://www.facebook.com/marketplace/';
+const marketplaceSellingUrl = 'https://www.facebook.com/marketplace/selling';
 
 module.exports = class ItemsSeller {
 
@@ -22,9 +23,9 @@ module.exports = class ItemsSeller {
         await pup.loadCookies(this.page, this.cookiesFile);
     }
     
-    async goToMarketPlace() {
+    async goToMarketPlace(url = marketplaceUrl) {
         // go to the marketplace and log in if needed
-        await pup.goTo(this.page, startingPointUrl);
+        await pup.goTo(this.page, url);
         const loginForm = await this.page.$('#login_form');
         if(loginForm) {
             await logIn.call(this);
@@ -32,6 +33,23 @@ module.exports = class ItemsSeller {
             await sleep.sleep(1);
             await pup.saveCookies(this.page, this.cookiesFile);
         }
+    }
+
+    async fetchAdBindings() {
+        const promise = new Promise((resolve, reject) => {
+            this.page.on('response', async (response) => {
+                if(response.url() == 'https://www.facebook.com/api/graphql/' && response.request().postData().indexOf('MARKETPLACE_SELLING_ITEM_IMAGE_WIDTH') != -1) {
+                    console.log('Processing ads list...');
+                    let json = await response.json();
+                    const bindings = [];
+                    for(let ad of json.data.viewer.selling_feed_one_page.edges)
+                        bindings.push({fbId: ad.node.id, title: ad.node.group_commerce_item_title});
+                    resolve(bindings);
+                }
+            });
+        });
+        await this.goToMarketPlace(marketplaceSellingUrl);
+        return promise;
     }
 
     async sellItems(items) {
@@ -48,7 +66,7 @@ module.exports = class ItemsSeller {
         await this.browser.close();
         console.log('Seller closed.');
     }
-}
+};
 
 logIn = async function() {
     console.log('Logging in...');

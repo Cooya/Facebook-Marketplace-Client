@@ -1,9 +1,10 @@
 const config = require('../config');
-const manager = require('./items_manager');
+const ItemsManager = require('./items_manager');
 const utils = require('./utils/utils');
 
 (async () => {
-    let items = await manager.getProcessedItems();
+    const itemsManager = new ItemsManager(config);
+    let items = await itemsManager.getProcessedItems();
     if(!items.length) {
         console.error('No item to process.');
         process.exit(1);

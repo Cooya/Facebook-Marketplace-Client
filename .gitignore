@@ -3,5 +3,6 @@ node_modules
 assets/pictures
 assets/cookies.json
 assets/input.xml
+assets/ouput.xml
 assets/db.json
 config.js

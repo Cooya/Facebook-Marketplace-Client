@@ -1,5 +1,5 @@
 const config = require('../config');
-const manager = require('./items_manager');
+const ItemsManager = require('./items_manager');
 const ItemsSeller = require('./items_seller');
 
 (async function main() {
@@ -11,7 +11,8 @@ const ItemsSeller = require('./items_seller');
             mode = i < args.length && args[i + 1];
     }
 
-    const items = await manager.loadItems(config.inputFile);
+    const itemsManager = new ItemsManager(config);
+    const items = await itemsManager.loadItems();
 
     if(!mode || mode == 'posting') {
         if(!items.length) {
@@ -26,6 +27,10 @@ const ItemsSeller = require('./items_seller');
         await itemsSeller.open();
         await itemsSeller.goToMarketPlace();
         await itemsSeller.sellItems(items);
+
+        const bindings = await itemsSeller.fetchAdBindings();
+        await itemsManager.updateItemsWithBindings(bindings);
+
         await itemsSeller.close();
     }
     else if(mode == 'edition') {

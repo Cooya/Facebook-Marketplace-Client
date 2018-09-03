@@ -2,8 +2,8 @@ const assert = require('assert');
 const mock = require('simple-mock').mock;
 
 const config = require('../config');
+const ItemsManager = require('../src/items_manager');
 const utils = require('../src/utils/utils');
-let manager;
 let errors;
 
 describe('testing items loading from file and database', () => {
@@ -11,7 +11,7 @@ describe('testing items loading from file and database', () => {
     before(async () => {
         mock(utils, 'downloadFile').callFn((url) => Promise.resolve(url));
         mock(config, 'dbFile', 'test/db.json');
-        manager = require('../src/items_manager'); // need to be here
+        mock(config, 'inputFile', 'test/sample.xml');
         errors = mock(console, 'error');
         
         try {
@@ -29,7 +29,8 @@ describe('testing items loading from file and database', () => {
 
     describe('load items from xml file', async () => {
         it('should be 2 present items and 4 absent items', async () => {
-            const items = await manager.loadItems('test/sample.xml');
+            const itemsManager = new ItemsManager(config);
+            const items = await itemsManager.loadItems();
             assert.equal(items.length, 2);
 
             assert.equal(items[0].link, 'https://www.consortium-immobilier.fr/annonce-123.html');
@@ -60,7 +61,8 @@ describe('testing items loading from file and database', () => {
 
     describe('load items from database', async () => {
         it('should be 2 present items and 4 absent items', async () => {
-            const items = await manager.loadItems();
+            const itemsManager = new ItemsManager(config);
+            const items = await itemsManager.loadItems();
             assert.equal(items.length, 2);
 
             assert.equal(items[0].link, 'https://www.consortium-immobilier.fr/annonce-123.html');
