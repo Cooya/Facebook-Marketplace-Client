@@ -1,7 +1,9 @@
 module.exports = {
     picturesFolder: 'assets/pictures/',
     cookiesFile: 'assets/cookies.json',
-    inputFile: 'assets/input.xml',
+    insertInputFile: 'assets/insertInput.xml',
+    updateInputFile: 'assets/updateInput.xml',
+    deleteInputFile: 'assets/deleteInput.xml',
     outputFile: 'assets/output.xml',
     dbFile: 'assets/db.json',
     login: '',

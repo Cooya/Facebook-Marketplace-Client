@@ -2,7 +2,9 @@ node_modules
 .vscode
 assets/pictures
 assets/cookies.json
-assets/input.xml
+assets/insertInput.xml
+assets/updateInput.xml
+assets/deleteInput.xml
 assets/ouput.xml
 assets/db.json
 config.js
