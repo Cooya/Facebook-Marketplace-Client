@@ -21,13 +21,16 @@ async function writeXMLFile(filePath, content) {
     await writeFile(filePath, xml);
 }
 
-async function downloadFile(url, destFolder, fileName = null) {
+async function downloadFile(url, destFolder, fileName = null, forceDownload = false) {
     await mkdir(destFolder);
 
     if(!fileName)
         fileName = path.basename(url);
 
     const filePath = path.join(destFolder, fileName);
+    if(!forceDownload && await fileExists(filePath)) // do not download if the file already exists
+        return Promise.resolve(filePath);
+
     const file = fs.createWriteStream(filePath);
 
     return new Promise((resolve, reject) => {
@@ -49,7 +52,7 @@ async function fileExists(filePath) {
 }
 
 function getRandomNumber(min, max) {
-    return Math.random() * (max - min) + min;
+    return Number.parseInt(Math.random() * (max - min) + min);
 }
 
 module.exports = {

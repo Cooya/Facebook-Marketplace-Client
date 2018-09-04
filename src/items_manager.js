@@ -10,7 +10,6 @@ module.exports = class ItemsManager {
     
     constructor(config) {
         this.db = new loki(config.dbFile);
-        this.inputFile = config.inputFile;
         this.itemCategory = config.itemCategory;
         this.picturesFolder = config.picturesFolder;
         this.requiredKeys = ['link', 'title', 'price', 'location', 'description', 'pictures'];
@@ -18,28 +17,25 @@ module.exports = class ItemsManager {
         this.itemsCollection = null;
     }
 
-    async getProcessedItems() {
-        await loadDatabase.call(this.db, {});
-        this.itemsCollection = this.db.getCollection('items');
-        if(!this.itemsCollection)
-            return [];
-        return this.itemsCollection.find({processed: true});
+    async getItem(id) {
+        await loadCollection.call(this);
+        return this.itemsCollection.findOne({id: id});
     }
 
-    async loadItems() {
-        await loadDatabase.call(this.db, {});
-    
-        // load or create the items collection
-        this.itemsCollection = this.db.getCollection('items');
-        if(!this.itemsCollection)
-            this.itemsCollection = this.db.addCollection('items', {unique: 'id'});
+    async getProcessedItems() {
+        await loadCollection.call(this);
+        return this.itemsCollection.find({fbId: {$ne: null}});
+    }
+
+    async loadItemsToSell(inputFile) {
+        await loadCollection.call(this);
     
         // if input file exists
-        if(this.inputFile && await utils.fileExists(this.inputFile)) {
-            console.log('Loading items from file "' + this.inputFile + '"...');
+        if(inputFile && await utils.fileExists(inputFile)) {
+            console.log('Loading items from file "' + inputFile + '"...');
     
             // read xml file
-            const xml = await utils.readXMLFile(this.inputFile);
+            const xml = await utils.readXMLFile(inputFile);
     
             // process items
             const processedItems = await processItems.call(this, xml.xml.annonce, this.requiredKeys);
@@ -49,19 +45,43 @@ module.exports = class ItemsManager {
         }
     
         // return the unprocessed items from the database
-        return this.itemsCollection.find({processed: false});
+        return this.itemsCollection.find({fbId: null});
     }
 
-    async markItemAsProcessed(id) {
-        const item = this.itemsCollection.findOne({id: id});
-        if(!item) {
-            console.error('The item "' + id + '" has not been found into database.');
-            return;
-        }
-        item.processed = true;
-        this.itemsCollection.update(item);
-        await saveDatabase.call(this.db);
-        console.log('Item marked as processed.');
+    async loadItemsToEdit(inputFile) {
+        await loadCollection.call(this);
+
+        if(!inputFile)
+            throw Error('An input file is required.');
+        if(!await utils.fileExists(inputFile))
+            throw Error('The input file does not exist.');
+        console.log('Loading items from file "' + inputFile + '"...');
+        const xml = await utils.readXMLFile(inputFile);
+        if(!xml.xml.annonce)
+            throw Error('Invalid input file.');
+        return await processItems.call(this, xml.xml.annonce, this.requiredKeys);
+    }
+
+    async loadItemsToRemove(inputFile) {
+        await loadCollection.call(this);
+
+        if(!inputFile)
+            throw Error('An input file is required.');
+        if(!await utils.fileExists(inputFile))
+            throw Error('The input file does not exist.');
+        console.log('Loading items from file "' + inputFile + '"...');
+        const xml = await utils.readXMLFile(inputFile);
+        if(!xml.xml.lien)
+            throw Error('Invalid input file.');
+        return xml.xml.lien.reduce((acc, link) => {
+            const matchResult = link.match(this.linkRegex);
+            if(!matchResult) {
+                console.error('Link "%s" is invalid.', link);
+                return;
+            }
+            acc.push(matchResult[1]);
+            return acc
+        }, []);
     }
     
     async updateItemsWithBindings(bindings) {
@@ -82,14 +102,36 @@ module.exports = class ItemsManager {
     
         await saveDatabase.call(this.db);
     }
+
+    async updateItem(item) {
+        this.itemsCollection.update(item);
+        await saveDatabase.call(this.db);
+        console.log('Item "%s" updated into database.', item.id);
+    }
+
+    async deleteItem(item) {
+        this.itemsCollection.remove(item);
+        await saveDatabase.call(this.db);
+        console.log('Item "%s" deleted from database.', item.id);
+    }
 };
 
+async function loadCollection() {
+    if(!this.itemsCollection) {
+        await loadDatabase.call(this.db, {});
+        this.itemsCollection = this.db.getCollection('items');
+        if(!this.itemsCollection)
+            this.itemsCollection = this.db.addCollection('items', {unique: 'id'});
+    }
+}
+
 async function processItems(items) {
-    console.log(items.length + ' items to process.');
+    console.log('%s items to process.', items.length);
     let invalidCounter = 0;
 
-    const processedItems =  await Promise.all(items.map(async (item) => {
-        const processedItem = {};
+    const processedItems = [];
+    await asyncForEach(items, async (item) => {
+        let processedItem = {};
         processedItem.link = item.lien[0];
         processedItem.title = item.type[0];
         processedItem.price = item.prix[0].replace(',00 EUR', '');
@@ -108,7 +150,7 @@ async function processItems(items) {
                 console.error('Unexpected issue when reading pictures from item "' + processedItem.link + '".');
                 //console.error(processedItem);
                 invalidCounter++;
-                return null;
+                return;
             }
         }
 
@@ -117,7 +159,7 @@ async function processItems(items) {
                 console.error('Processed item is invalid : "' + processedItem.link + '", missing key "' + key + '".');
                 //console.error(processedItem);
                 invalidCounter++;
-                return null;
+                return;
             }
         }
 
@@ -126,12 +168,12 @@ async function processItems(items) {
             console.error('Processed item is invalid : "' + processedItem.link + '", link is invalid.');
             //console.error(processedItem);
             invalidCounter++;
-            return null;
+            return;
         }
-        processedItem['id'] = matchResult[1];
-
-        return processedItem;
-    }));
+        processedItem.id = matchResult[1];
+        processedItem.fbId = null;
+        processedItems.push(processedItem);
+    });
 
     console.log(invalidCounter + ' invalid items.');
     return processedItems;
@@ -140,12 +182,9 @@ async function processItems(items) {
 async function saveItemsIntoDatabase(items) {
     let counter = 0;
     for(let item of items) {
-        if(!item)
-            continue;
         if(this.itemsCollection.findOne({id: item.id}))
             ;//console.warn('Item "' + item.id + '" already exists in database.');
         else {
-            item.processed = false;
             this.itemsCollection.insert(item);
             //console.log('Item "' + item.id + '" inserted into database.');
             counter++;
@@ -157,4 +196,9 @@ async function saveItemsIntoDatabase(items) {
         console.log(counter + ' new items loaded into database.');
     }
     console.log(this.itemsCollection.data.length + ' items currently in database.')
+}
+
+async function asyncForEach(array, callback) {
+    for (let i = 0; i < array.length; i++)
+        await callback(array[i], i, array)
 }

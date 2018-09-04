@@ -2,8 +2,7 @@ const sleep = require('sleep');
 
 const pup = require('./utils/pup_utils');
 
-const marketplaceUrl = 'https://www.facebook.com/marketplace/';
-const marketplaceSellingUrl = 'https://www.facebook.com/marketplace/selling';
+const marketplaceUrl = 'https://www.facebook.com/marketplace/selling';
 
 module.exports = class ItemsSeller {
 
@@ -12,75 +11,66 @@ module.exports = class ItemsSeller {
         this.password = config.password;
         this.cookiesFile = config.cookiesFile;
         this.commit = config.commit
-        this.intervalBetweenSellings = config.intervalBetweenSellings;
         this.headless = config.headless;
+        this.bindings = [];
     }
 
     async open() {
         // open browser and load cookies
         this.browser = await pup.runBrowser({headless: this.headless});
         this.page = await pup.createPage(this.browser, this.cookiesFile);
-        await pup.loadCookies(this.page, this.cookiesFile);
-    }
-    
-    async goToMarketPlace(url = marketplaceUrl) {
-        // go to the marketplace and log in if needed
-        await pup.goTo(this.page, url);
-        const loginForm = await this.page.$('#login_form');
-        if(loginForm) {
-            await logIn.call(this);
-            await this.page.waitForNavigation();
-            await sleep.sleep(1);
-            await pup.saveCookies(this.page, this.cookiesFile);
-        }
-    }
 
-    async fetchAdBindings() {
-        const promise = new Promise((resolve, reject) => {
-            this.page.on('response', async (response) => {
-                if(response.url() == 'https://www.facebook.com/api/graphql/' && response.request().postData().indexOf('MARKETPLACE_SELLING_ITEM_IMAGE_WIDTH') != -1) {
-                    console.log('Processing ads list...');
-                    let json = await response.json();
-                    const bindings = [];
-                    for(let ad of json.data.viewer.selling_feed_one_page.edges)
-                        bindings.push({fbId: ad.node.id, title: ad.node.group_commerce_item_title});
-                    resolve(bindings);
-                }
-            });
+        this.page.on('response', async (response) => {
+            if(response.url() == 'https://www.facebook.com/api/graphql/' && response.request().postData().indexOf('MARKETPLACE_SELLING_ITEM_IMAGE_WIDTH') != -1) {
+                console.log('Processing ads list...');
+                let json = await response.json();
+                this.bindings = json.data.viewer.selling_feed_one_page.edges.map((ad) => {
+                    return {fbId: ad.node.id, title: ad.node.group_commerce_item_title};
+                });
+            }
         });
-        await this.goToMarketPlace(marketplaceSellingUrl);
-        return promise;
     }
 
-    async sellItems(items) {
-        for(let item of items) {
-            console.log('Selling item "' + item.title + '"...');
-            await openSellFormModal.call(this);
-            await fillSellForm.call(this, item);
-            if(this.commit)
-                await manager.markItemAsProcessed(item.id);
-            console.log('Selling has succeeded.');
-        }
+    async sellItem(item) {
+        if(this.page.url() != marketplaceUrl)
+            await goToMarketPlace.call(this);
+
+        await openSellFormModal.call(this);
+        await fillSellForm.call(this, item);
+        await sleep.sleep(1);
+        await this.page.reload();
     }
 
-    async editItems(items) {
-        for(let item of items) {
-            console.log('Updating item "' + item.title + '"...');
-            await manageItem.call(this, item, 'edit');
-            if(this.commit)
-                await manager.editItem(item.id);
-            console.log('Item has been updated successfully.');
+    async manageItem(item, action) {
+        const actions = {
+            'edit': editItem,
+            'remove': removeItem
+        };
+    
+        if(!this.page.url() != marketplaceUrl) {
+            await goToMarketPlace.call(this);
+            await sleep.msleep(500);
         }
-    }
+    
+        const itemContainers = await this.page.$$('div.clearfix [direction="left"]');
+        let found = false;
+        for(let itemContainer of itemContainers) {
+            if(await itemContainer.$('span[title="' + item.title + '"')) {
+                await this.page.click('a > span > i[alt=""]');
+                await this.page.waitForSelector('li[role="presentation"] > a[role="menuitem"]');
+                await sleep.msleep(500);
+                actions[action].call(this, item);
+                found = true;
+                break;
+            }
+        }
 
-    async removeItems(items) {
-        for(let item of items) {
-            console.log('Removing item "' + item.title + '"...');
-            await manageItem.call(this, item, 'remove');
-            if(this.commit)
-                await manager.removeItem(item.id);
-            console.log('Item has been removed successfully.');
+        if(!found) {
+            console.error('Cannot update item "%s", not found in selling.', item.id);
+            sleep.sleep(3);
+            return false;
         }
+        return true;
     }
 
     async close() {
@@ -88,6 +78,17 @@ module.exports = class ItemsSeller {
         console.log('Seller closed.');
     }
 };
+
+async function goToMarketPlace() {
+    await pup.goTo(this.page, marketplaceUrl);
+    const loginForm = await this.page.$('#login_form');
+    if(loginForm) { // log in if needed
+        await logIn.call(this);
+        await this.page.waitForNavigation();
+        await sleep.sleep(1);
+        await pup.saveCookies(this.page, this.cookiesFile);
+    }
+}
 
 async function logIn() {
     console.log('Logging in...');
@@ -184,7 +185,6 @@ async function fillSellForm(item) {
     if(this.commit) {
         await this.page.click('div[role=dialog] button[type="submit"][aria-haspopup="true"]');
         await this.page.waitForSelector('div[role=dialog] button[type="submit"][aria-haspopup="true"]', {hidden: true});
-        await sleep.sleep(utils.getRandomNumber(this.intervalBetweenSellings[0], this.intervalBetweenSellings[1]));
     }
     else { // discard the form
         await this.page.click('button.layerCancel');
@@ -192,31 +192,8 @@ async function fillSellForm(item) {
         await sleep.msleep(500);
         await this.page.click('div.uiOverlayFooter button:nth-child(1)');
         await this.page.waitForSelector('div[role=dialog] button[type="submit"][aria-haspopup="true"]', {hidden: true});
-        await sleep.sleep(2);
     }
-}
-
-async function manageItem(item, action) {
-    const actions = {
-        'edit': editItem,
-        'remove': removeItem
-    };
-
-    if(!this.page.url() != marketplaceSellingUrl) {
-        await this.goToMarketPlace(marketplaceSellingUrl);
-        await sleep.msleep(500);
-    }
-
-    const itemContainers = await this.page.$$('div.clearfix [direction="left"]');
-    for(let itemContainer of itemContainers) {
-        if(await itemContainer.$('span[title="' + item.title + '"')) {
-            await this.page.click('a > span > i[alt=""]');
-            await this.page.waitForSelector('li[role="presentation"] > a[role="menuitem"]');
-            await sleep.msleep(500);
-            actions[action].call(this, item);
-            break;
-        }
-    }
+    console.log('Sell form filled successfuly.');
 }
 
 async function editItem(item) {
@@ -234,12 +211,10 @@ async function removeItem() {
     if(this.commit) {
         await this.page.click('div[data-testid="simple_xui_dialog_footer"] a[action="cancel"]:nth-child(2)');
         await this.page.waitForSelector('div[data-testid="simple_xui_dialog_footer"]', {hidden: true});
-        await sleep.sleep(utils.getRandomNumber(this.intervalBetweenSellings[0], this.intervalBetweenSellings[1]));
     }
     else {
         await this.page.click('div[data-testid="simple_xui_dialog_footer"] a[action="cancel"]:nth-child(1)');
         await this.page.waitForSelector('div[data-testid="simple_xui_dialog_footer"]', {hidden: true});
-        await this.page.sleep(2);
     }
     console.log('Item removed sucessfully.');
 }
