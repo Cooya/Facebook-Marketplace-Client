@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<xml>
+
+<annonce>
+<lien>https://www.consortium-immobilier.fr/annonce-123.html</lien>
+<titre>MAISON [123]</titre>
+<prix>300 000,00 EUR</prix>
+<descriptif>Jolie maison avec vue sur un parc où l'on peut aperçevoir des écureuils roux.</descriptif>
+<ville>Montpellier</ville>
+<photos><photo>https://photo.com</photo></photos>
+</annonce>
+
+<annonce>
+<lien>https://www.consortium-immobilier.fr/annonce-789.html</lien>
+<titre>APPART [789]</titre>
+<prix>27 000,00 EUR</prix>
+<descriptif>Appartement sympa.</descriptif>
+<ville>Ajaccio</ville>
+<!-- <photos><photo>https://photo.com</photo></photos> -->
+</annonce>
+
+<annonce>
+<lien>https://www.consortium-immobilier.fr/annonce-000.html</lien>
+<titre>MAISON [000]</titre>
+<prix>279 000,00 EUR</prix>
+<!-- <descriptif>Maison en bois, avec toilettes turques.</descriptif> -->
+<ville>Le Mans</ville>
+<photos><photo>https://photo.com</photo><photo>https://photo.com</photo></photos>
+</annonce>
+
+<annonce><lien>https://www.consortium-immobilier.fr/annonce-abc.html</lien>
+<titre>TERRAIN [ABC]</titre>
+<prix>141 000,00 EUR</prix>
+<descriptif>Terrain avec lac en plein milieu pour pêcher la carpe.</descriptif>
+<ville>Brest</ville>
+<photos><photo>https://photo.com</photo></photos>
+</annonce>
+
+<annonce><lien>https://www.consortium-immobilier.fr/annonce-567.html</lien>
+<titre>CHALET [567]</titre>
+<prix>567 000,00 EUR</prix>
+<descriptif></descriptif>
+<ville>Genève</ville>
+<photos><photo>https://photo.com</photo></photos>
+</annonce>
+
+<annonce>
+<lien>https://www.consortium-immobilier.fr/annonce-456.html</lien>
+<titre>MAISON [456]</titre>
+<prix>897 000,00 EUR</prix>
+<descriptif>JSuper grande maison pour faire des soirées projet X.</descriptif>
+<ville>Monaco</ville>
+<photos><photo>https://photo.com</photo><photo>https://photo.com</photo><photo>https://photo.com</photo></photos>
+</annonce>
+
+</xml>

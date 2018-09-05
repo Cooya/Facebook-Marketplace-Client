@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<xml>
+
+<annonce>
+<lien>https://www.consortium-immobilier.fr/annonce-123.html</lien>
+<titre>MAISON [123]</titre>
+<prix>200 000,00 EUR</prix>
+<descriptif>Jolie maison avec vue sur un parc où l'on peut aperçevoir des écureuils roux et gris.</descriptif>
+<ville>Montpellier</ville>
+<photos><photo>https://photo.com</photo></photos>
+</annonce>
+
+<annonce>
+<lien>https://www.consortium-immobilier.fr/annonce-789.html</lien>
+<titre>APPART [789]</titre>
+<prix>27 000,00 EUR</prix>
+<descriptif>Appartement sympa et super insonorisé, vous pouvez faire la fête comme des fous.</descriptif>
+<ville>Ajaccio</ville>
+<photos><photo>https://photo.com</photo></photos>
+</annonce>
+
+<annonce>
+<lien>https://www.consortium-immobilier.fr/annonce-000.html</lien>
+<titre>MAISON [000]</titre>
+<prix>250 000,00 EUR</prix>
+<descriptif>Maison en bois, avec toilettes turques.</descriptif>
+<ville>Le Mans</ville>
+<photos><photo>https://photo.com</photo><photo>https://photo.com</photo></photos>
+</annonce>
+
+<annonce>
+<lien>https://www.consortium-immobilier.fr/annonce-121.html</lien>
+<titre>CABANE [121]</titre>
+<prix>5,00 EUR</prix>
+<descriptif>Cabane de berger en pierres polies, assez rustique.</descriptif>
+<!-- <ville>La Mongie</ville> -->
+<photos><photo>https://photo.com</photo><photo>https://photo.com</photo></photos>
+</annonce>
+
+</xml>
