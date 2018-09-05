@@ -12,8 +12,10 @@ Copier le fichier "assets/config.template" à la racine du projet en renommant "
 module.exports  = {
   picturesFolder: 'assets/pictures/',
   cookiesFile: 'assets/cookies.json',
-  inputFile: 'assets/input.xml', // fichier d'input contenant les items à mettre en vente
-  outputFile: 'assets/output.xml', // fichier d'output généré en sortie
+  insertInputFile: 'assets/insertInput.xml', // fichier d'entrée contenant les annonces à poster
+  updateInputFile: 'assets/updateInput.xml', // fichier d'entrée contenant les annonces à modifier
+  deleteInputFile: 'assets/deleteInput.xml', // fichier d'entrée contenant les annonces à retirer
+  outputFile: 'assets/output.xml', // fichier généré en sortie
   dbFile: 'assets/db.json', // fichier contenant le datastore (base de données portable) du projet
   login: 'TO_COMPLETE', // votre identifiant Facebook
   password: 'TO_COMPLETE', // votre mot de passe Facebook
@@ -25,24 +27,16 @@ module.exports  = {
 ```
 
 ## Exécution
-Avant de pouvoir poster des annonces, il est nécessaire de télécharger un fichier XML qui fera office de fichier d'entrée pour compléter la base de données. Pour télécharger ce fichier depuis l'API de consortium-immobilier.fr, lancer la commande suivante :
+Avant de pouvoir poster des annonces, il est nécessaire de télécharger un fichier XML qui fera office de fichier d'entrée pour compléter la base de données. Il en va de même pour modifier ou supprimer des annonces de la base de données. Pour télécharger depuis l'API de consortium-immobilier.fr chaque fichier correspondant à une action, lancer les commandes suivantes :
 ```bash
-npm run download-input
+npm run download-insert-input
+npm run download-update-input
+npm run download-delete-input
 ```
-Pour lancer la mise en vente d'annonces :
+Ensuite, pour poster, modifier ou supprimer des annonces, les commandes à effectuer sont les suivantes :
 ```bash
-npm start
-```
-ou
-```bash
-npm run post-ads
-```
-Pour lancer l'édition d'annonces existantes :
-```bash
+npm run post-ads // ou npm start
 npm run edit-ads
-```
-Pour lancer la suppression d'annonces en ligne :
-```bash
 npm run remove-ads
 ```
 Pour générer un fichier d'output listant les annonces postées :
