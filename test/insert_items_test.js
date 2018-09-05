@@ -7,13 +7,15 @@ const ItemsSeller = require('../src/items_seller');
 const Launcher = require('../src/launcher');
 const utils = require('../src/utils/utils');
 
+const inputFile = 'test/insert_sample.xml';
+
 describe('items insertion : testing items to insert loading from file and database', () => {
 	let itemsManager;
 
 	before(async () => {
 		mock(utils, 'downloadFile').callFn((url) => Promise.resolve(url));
 		mock(config, 'dbFile', 'test/db.json');
-		mock(config, 'insertInputFile', 'insert_sample.xml');
+		mock(config, 'insertInputFile', inputFile);
 		mock(config, 'commit', true);
 
 		itemsManager = new ItemsManager(config);
@@ -39,7 +41,7 @@ describe('items insertion : testing items to insert loading from file and databa
 		});
 
 		it('should be 2 present items and 4 absent items', async () => {
-			const items = await itemsManager.loadItemsToSell('test/insert_sample.xml');
+			const items = await itemsManager.loadItemsToSell(inputFile);
 			assert.equal(items.length, 2);
 
 			assert.equal(items[0].link, 'https://www.consortium-immobilier.fr/annonce-123.html');

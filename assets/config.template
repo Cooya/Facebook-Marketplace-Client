@@ -1,15 +1,15 @@
-module.exports = {
+module.exports  = {
     picturesFolder: 'assets/pictures/',
     cookiesFile: 'assets/cookies.json',
-    insertInputFile: 'assets/insertInput.xml',
-    updateInputFile: 'assets/updateInput.xml',
-    deleteInputFile: 'assets/deleteInput.xml',
-    outputFile: 'assets/output.xml',
-    dbFile: 'assets/db.json',
-    login: '',
-    password: '',
-    itemCategory: 'Property For Sale',
-    headless: true,
-    commit: false,
-    intervalBetweenSellings: [30, 300]
+    insertInputFile: 'assets/insertInput.xml', // fichier d'entrée contenant les annonces à poster
+    updateInputFile: 'assets/updateInput.xml', // fichier d'entrée contenant les annonces à modifier
+    deleteInputFile: 'assets/deleteInput.xml', // fichier d'entrée contenant les annonces à retirer
+    outputFile: 'assets/output.xml', // fichier généré en sortie
+    dbFile: 'assets/db.json', // fichier contenant le datastore (base de données portable) du projet
+    login: '', // votre identifiant Facebook
+    password: '', // votre mot de passe Facebook
+    itemCategory: 'Property For Sale', // la catégorie des objets à mettre en vente (doit être en anglais)
+    headless: false, // détermine si le navigateur est affiché ou non (laisser à false si vous voulez voir ce qu'il se passe pendant l'exécution du script)
+    commit: false, // lorsque cette valeur vaut false, la mise en vente est simplement simulée, mettre à true si vous souhaitez réellement mettre les items en vente
+    intervalBetweenSellings: [30, 300] // intervalle minimum et maximum en secondes entre chaque vente
 }

@@ -7,13 +7,15 @@ const ItemsSeller = require('../src/items_seller');
 const Launcher = require('../src/launcher');
 const utils = require('../src/utils/utils');
 
+const inputFile = 'test/update_sample.xml';
+
 describe('items update : testing items to edit loading from file and database', () => {
 	let itemsManager;
 
 	before(async () => {
 		mock(utils, 'downloadFile').callFn((url) => Promise.resolve(url));
 		mock(config, 'dbFile', 'test/db.json');
-		mock(config, 'updateInputFile', 'update_sample.xml');
+		mock(config, 'updateInputFile', inputFile);
 		mock(config, 'commit', true);
 
 		itemsManager = new ItemsManager(config);
@@ -34,7 +36,7 @@ describe('items update : testing items to edit loading from file and database', 
 		});
 
 		it('should be 3 present items and 1 absent item', async () => {
-			const items = await itemsManager.loadItemsToEdit('test/update_sample.xml');
+			const items = await itemsManager.loadItemsToEdit(inputFile);
 			assert.equal(items.length, 3);
 
 			assert.equal(items[0].link, 'https://www.consortium-immobilier.fr/annonce-123.html');
@@ -77,12 +79,16 @@ describe('items update : testing items to edit loading from file and database', 
 	});
 
 	describe('update items', async () => {
+		let launcher;
 
 		before(async () => {
 			try {
 				await utils.deleteFile('test/db.json');
 			}
 			catch (e) { }
+
+			launcher = new Launcher();
+			itemsManager = launcher.itemsManager;
 
 			// load items to sell into database and mark them as processed
 			const items = await itemsManager.loadItemsToSell('test/insert_sample.xml');
@@ -102,7 +108,6 @@ describe('items update : testing items to edit loading from file and database', 
 			assert.equal(item.price, '300 000');
 			assert.equal(item.description, 'Jolie maison avec vue sur un parc où l\'on peut aperçevoir des écureuils roux.');
 
-			const launcher = new Launcher();
 			await launcher.run('edition');
 
 			item = await itemsManager.getItem('123');

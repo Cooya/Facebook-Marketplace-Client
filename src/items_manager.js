@@ -114,7 +114,7 @@ module.exports = class ItemsManager {
 	
 			item.fbId = binding.fbId;
 			this.itemsCollection.update(item);
-			console.log('Facebook ID added to item "%s".', item.id);
+			console.log('Facebook ID added to item "%s" into database.', item.id);
 		}
 	
 		await saveDatabase.call(this.db);
