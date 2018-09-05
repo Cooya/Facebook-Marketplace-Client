@@ -22,21 +22,20 @@ module.exports = class ItemsSeller {
 
 		this.page.on('response', async (response) => {
 			if(response.url() == 'https://www.facebook.com/api/graphql/' && response.request().postData().indexOf('MARKETPLACE_SELLING_ITEM_IMAGE_WIDTH') != -1) {
-				console.log('Processing ads list...');
+				//console.log('Processing ads list...');
 				let json = await response.json();
 				json.data.viewer.selling_feed_one_page.edges.forEach((ad) => {
 					if(!this.fbIds[ad.node.group_commerce_item_title])
 						this.fbIds[ad.node.group_commerce_item_title] = ad.node.id;
 				});
-				console.log(this.fbIds);
+				//console.log(this.fbIds);
 			}
 		});
+
+		await goToMarketPlace.call(this);
 	}
 
 	async sellItem(item) {
-		if(this.page.url() != marketplaceUrl)
-			await goToMarketPlace.call(this);
-
 		await openSellFormModal.call(this);
 		await fillSellForm.call(this, item);
 
@@ -52,9 +51,6 @@ module.exports = class ItemsSeller {
 			'edit': editItem,
 			'remove': removeItem
 		};
-	
-		if(!this.page.url() != marketplaceUrl)
-			await goToMarketPlace.call(this);
 	
 		const itemContainers = await this.page.$$('div.clearfix [direction="left"]');
 		let found = false;

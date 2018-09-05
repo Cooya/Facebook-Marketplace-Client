@@ -84,24 +84,29 @@ describe('items insertion : testing items to insert loading from file and databa
 	});
 
 	describe('post items', async () => {
+		let launcher;
 
 		before(async () => {
 			mock(ItemsSeller.prototype, 'open').callFn(() => Promise.resolve());
 			mock(ItemsSeller.prototype, 'close').callFn(() => Promise.resolve());
 			mock(ItemsSeller.prototype, 'sellItem').callFn(() => Promise.resolve());
 			mock(utils, 'randomSleep').callFn(() => Promise.resolve());
+
+			launcher = new Launcher();
 		});
 
 		it('should update facebook id of every item put into the marketplace', async () => {
-			const bindings = (await itemsManager.loadItemsToSell()).map((item) => {
-				return { fbId: Math.random().toString(36).substring(7), title: item.title };
+			const fbIds = {};
+			(await launcher.itemsManager.loadItemsToSell()).map((item) => {
+				fbIds[item.title] = Math.random().toString(36).substring(7);
 			});
-			mock(ItemsSeller.prototype, 'bindings', bindings);
+			mock(launcher.itemsSeller, 'fbIds', fbIds);
 
-			const launcher = new Launcher();
 			await launcher.run('posting');
 
-			for (let item of await itemsManager.getProcessedItems())
+			const items = await launcher.itemsManager.getProcessedItems();
+			assert.equal(items.length, 2);
+			for(let item of items)
 				assert.equal(typeof item.fbId, 'string');
 		});
 	});

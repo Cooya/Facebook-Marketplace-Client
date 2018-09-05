@@ -44,11 +44,19 @@ module.exports = class Launcher {
 
 	async postItems(items) {
 		for(let item of items) {
-			console.log('Selling item "' + item.title + '"...');
+			console.log('Putting item "%s" for sale...', item.id);
+
+			if(this.itemsSeller.fbIds[item.title]) {
+				console.warn('Item "%s" already for sale.', item.id);
+				item.fbId = this.itemsSeller.fbIds[item.title];
+				await this.itemsManager.updateItem(item);
+				continue;
+			}
+
 			await this.itemsSeller.sellItem(item);
 			if(config.commit) {
 				if(!this.itemsSeller.fbIds[item.title])
-					console.error('The item "%s" has not been found among items for sale.');
+					console.error('The item "%s" has not been found among items for sale.', item.id);
 				else {
 					item.fbId = this.itemsSeller.fbIds[item.title];
 					await this.itemsManager.updateItem(item);
