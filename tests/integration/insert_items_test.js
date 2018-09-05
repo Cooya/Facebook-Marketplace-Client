@@ -1,34 +1,32 @@
 const assert = require('assert');
 const mock = require('simple-mock').mock;
 
-const config = require('../config');
-const ItemsManager = require('../src/items_manager');
-const ItemsSeller = require('../src/items_seller');
-const Launcher = require('../src/launcher');
-const utils = require('../src/utils/utils');
-
-const inputFile = 'test/insert_sample.xml';
+const config = require('../../config');
+const ItemsManager = require('../../src/items_manager');
+const ItemsSeller = require('../../src/items_seller');
+const Launcher = require('../../src/launcher');
+const utils = require('../../src/utils/utils');
 
 describe('items insertion : testing items to insert loading from file and database', () => {
 	let itemsManager;
 
 	before(async () => {
 		mock(utils, 'downloadFile').callFn((url) => Promise.resolve(url));
-		mock(config, 'dbFile', 'test/db.json');
-		mock(config, 'insertInputFile', inputFile);
+		mock(config, 'dbFile', 'tests/integration/db.json');
+		mock(config, 'insertInputFile', 'tests/integration/insert_sample.xml');
 		mock(config, 'commit', true);
 
 		itemsManager = new ItemsManager(config);
 
 		try {
-			await utils.deleteFile('test/db.json');
+			await utils.deleteFile(config.dbFile);
 		}
 		catch (e) { }
 	});
 
 	after(async () => {
 		try {
-			await utils.deleteFile('test/db.json');
+			await utils.deleteFile(config.dbFile);
 		}
 		catch (e) { }
 	});
@@ -41,7 +39,7 @@ describe('items insertion : testing items to insert loading from file and databa
 		});
 
 		it('should be 2 present items and 4 absent items', async () => {
-			const items = await itemsManager.loadItemsToSell(inputFile);
+			const items = await itemsManager.loadItemsToSell(config.insertInputFile);
 			assert.equal(items.length, 2);
 
 			assert.equal(items[0].link, 'https://www.consortium-immobilier.fr/annonce-123.html');

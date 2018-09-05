@@ -17,7 +17,7 @@
     "simple-mock": "^0.8.0"
   },
   "scripts": {
-    "test": "eslint . && mocha",
+    "test": "eslint . && mocha $(find tests -name '*.js')",
     "start": "node src/index.js --action posting",
     "post-ads": "node src/index.js --action posting",
     "edit-ads": "node src/index.js --action edition",

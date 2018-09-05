@@ -1,6 +1,6 @@
-node_modules
-.vscode
-assets/pictures
+node_modules/
+.vscode/
+assets/pictures/
 assets/cookies.json
 assets/insertInput.xml
 assets/updateInput.xml
