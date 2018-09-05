@@ -25,11 +25,11 @@ module.exports = class ItemsManager {
 	async getProcessedItem(id) {
 		const item = await this.getItem(id);
 		if(!item) {
-			console.error('Item "%s" not found into database.', id);
+			console.warn('Item "%s" not found into database.', id);
 			return null;
 		}
 		if(!item.fbId) {
-			console.error('Item "%s" has not been processed yet.', id);
+			console.warn('Item "%s" has not been processed yet.', id);
 			return null;
 		}
 		return item;
@@ -38,6 +38,15 @@ module.exports = class ItemsManager {
 	async getProcessedItems() {
 		await loadCollection.call(this);
 		return this.itemsCollection.find({fbId: {$ne: null}});
+	}
+
+	async areEqualItems(item1, item2) {
+		return item1.id == item2.id &&
+			item1.title == item2.title &&
+			item1.price == item2.price &&
+			item1.location == item2.location &&
+			item1.description == item2.description &&
+			item1.pictures.equalsTo(item2.pictures);
 	}
 
 	async loadItemsToSell(inputFile) {

@@ -10,7 +10,7 @@ const readFile = util.promisify(fs.readFile);
 const writeFile = util.promisify(fs.writeFile);
 const parseXML = util.promisify(xml2js.parseString);
 const mkdir = util.promisify(mkdirp);
-const builder = new xml2js.Builder({rootName: 'xml'});
+const builder = new xml2js.Builder({ rootName: 'xml' });
 
 async function readXMLFile(filePath) {
 	const xml = await readFile(filePath);
@@ -25,11 +25,11 @@ async function writeXMLFile(filePath, content) {
 async function downloadFile(url, destFolder, fileName = null, forceDownload = false) {
 	await mkdir(destFolder);
 
-	if(!fileName)
+	if (!fileName)
 		fileName = path.basename(url);
 
 	const filePath = path.join(destFolder, fileName);
-	if(!forceDownload && await fileExists(filePath)) // do not download if the file already exists
+	if (!forceDownload && await fileExists(filePath)) // do not download if the file already exists
 		return Promise.resolve(filePath);
 
 	const file = fs.createWriteStream(filePath);
@@ -47,7 +47,7 @@ async function fileExists(filePath) {
 		await util.promisify(fs.access)(filePath);
 		return true;
 	}
-	catch(e) {
+	catch (e) {
 		return false;
 	}
 }
@@ -70,4 +70,15 @@ module.exports = {
 	deleteFile: util.promisify(fs.unlink),
 	getRandomNumber: getRandomNumber,
 	randomSleep: randomSleep
+};
+
+Array.prototype.equalsTo = function(arr) {
+	if (this === arr) return true;
+	if (this == null || arr == null) return false;
+	if (this.length != arr.length) return false;
+
+	for (var i = 0; i < this.length; ++i) {
+		if (this[i] !== arr[i]) return false;
+	}
+	return true;
 };

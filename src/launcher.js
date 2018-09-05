@@ -34,8 +34,10 @@ module.exports = class Launcher {
 		action = this.actions[action];
 
 		const items = await action.loadMethod(action.inputFile);
-		if(!items.length)
-			throw Error('No item to process.');
+		if(!items.length) {
+			console.warn('No item to process.');
+			return;
+		}
 		
 		await this.itemsSeller.open();
 		await action.processMethod(items);
@@ -47,7 +49,7 @@ module.exports = class Launcher {
 			console.log('Putting item "%s" for sale...', item.id);
 
 			if(this.itemsSeller.fbIds[item.title]) {
-				console.warn('Item "%s" already for sale.', item.id);
+				console.warn('Item "%s" is already for sale.', item.id);
 				item.fbId = this.itemsSeller.fbIds[item.title];
 				await this.itemsManager.updateItem(item);
 				continue;
@@ -70,11 +72,17 @@ module.exports = class Launcher {
 	async editItems(items) {
 		let processedItem;
 		for(let item of items) {
+			console.log('Updating item "%s"...', item.id);
+
 			processedItem = await this.itemsManager.getProcessedItem(item.id);
 			if(!processedItem)
 				continue;
+
+			if(await this.itemsManager.areEqualItems(processedItem, item)) {
+				console.warn('Item "%s" is already up-to-date.', item.id);
+				continue;
+			}
 	
-			console.log('Updating item "%s"...', item.id);
 			if(await this.itemsSeller.manageItem(item, 'edit')) {
 				if(config.commit)
 					await this.itemsManager.updateItem(processedItem, item);
