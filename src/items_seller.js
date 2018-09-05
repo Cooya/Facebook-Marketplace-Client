@@ -59,7 +59,7 @@ module.exports = class ItemsSeller {
 				await this.page.click('a > span > i[alt=""]');
 				await this.page.waitForSelector('li[role="presentation"] > a[role="menuitem"]');
 				await sleep.msleep(500);
-				actions[action].call(this, item);
+				await actions[action].call(this, item);
 				found = true;
 				break;
 			}
@@ -110,19 +110,10 @@ async function openSellFormModal() {
 }
 
 async function fillSellForm(item) {
-	const cleanPictures = async () => {
-		const selector = 'button[title="Remove photo"], div.fbScrollableAreaContent button[title="Remove"]';
-		while(await this.page.$(selector)) {
-			await this.page.click(selector);
-			await sleep.msleep(500);
-		}
-	};
 
-	await cleanPictures(); // remove previous pictures if needed
-
-	// empty description if needed
+	// description
 	const previousDescriptionValue = await pup.attribute(this.page, 'div[aria-multiline="true"]', 'textContent');
-	if(previousDescriptionValue) {
+	if(previousDescriptionValue) { // empty description if needed
 		await this.page.type('div[aria-multiline="true"]', '');
 		await this.page.keyboard.down('Control');
 		await this.page.keyboard.down('KeyA');
@@ -130,17 +121,23 @@ async function fillSellForm(item) {
 		await this.page.keyboard.up('Control');
 		await this.page.keyboard.press('Delete');
 	}
+	await this.page.type('div[aria-multiline="true"]', item.description);
+	await sleep.msleep(500);
 	
-	// title, price and description
+	// title
+	await this.page.click('input[placeholder="What are you selling?"]'); // select all the title text
+	await sleep.msleep(500);
 	await this.page.type('input[placeholder="What are you selling?"]', item.title);
+	await sleep.msleep(500);
+
+	// price
+	await this.page.click('input[placeholder="Price"]', {clickCount: 3}); // select all the price text
 	await sleep.msleep(500);
 	await this.page.type('input[placeholder="Price"]', item.price);
 	await sleep.msleep(500);
-	await this.page.type('div[aria-multiline="true"]', item.description);
-	await sleep.msleep(500);
 
 	// location
-	await this.page.click('input[placeholder="Add Location"]');
+	await this.page.click('input[placeholder="Add Location"]'); // select all the location text
 	await sleep.msleep(500);
 	await this.page.type('input[placeholder="Add Location"]', item.location);
 	await sleep.msleep(2000);
@@ -150,6 +147,8 @@ async function fillSellForm(item) {
 	await sleep.msleep(500);
 
 	// category
+	await this.page.click('input[placeholder="Select a Category"]'); // select all the category text
+	await sleep.msleep(500);
 	await this.page.type('input[placeholder="Select a Category"]', item.category);
 	await sleep.msleep(500);
 	await this.page.keyboard.press('ArrowDown');
@@ -158,6 +157,15 @@ async function fillSellForm(item) {
 	await sleep.msleep(500);
 
 	// pictures
+	const cleanPictures = async () => {
+		const selector = 'button[title="Remove photo"], div.fbScrollableAreaContent button[title="Remove"]';
+		while(await this.page.$(selector)) {
+			await this.page.click(selector);
+			await sleep.msleep(500);
+		}
+	};
+	await cleanPictures(); // remove previous pictures if needed
+
 	for(let i = 0; i < 3; ++i) {
 		await (await this.page.$('input[title="Choose a file to upload"]')).uploadFile(...item.pictures);
 		try {
@@ -181,12 +189,12 @@ async function fillSellForm(item) {
 	await sleep.sleep(1);
 	
 
-	// submit the form
+	// submit the form if commit mode is enabled
 	if(this.commit) {
 		await this.page.click('div[role=dialog] button[type="submit"][aria-haspopup="true"]');
 		await this.page.waitForSelector('div[role=dialog] button[type="submit"][aria-haspopup="true"]', {hidden: true});
 	}
-	else { // discard the form
+	else { // discard the form otherwise
 		await this.page.click('button.layerCancel');
 		await this.page.waitForSelector('div.uiOverlayFooter');
 		await sleep.msleep(500);
@@ -197,7 +205,7 @@ async function fillSellForm(item) {
 }
 
 async function editItem(item) {
-	await this.page.click('li[role="presentation"]:nth-child(1) > a[role="menuitem"]');
+	await this.page.click('li[role="presentation"]:nth-child(2) > a[role="menuitem"]');
 	await this.page.waitForSelector('div[role=dialog] input');
 	await sleep.sleep(1);
 	await fillSellForm.call(this, item);

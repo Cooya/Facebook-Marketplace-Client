@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<xml>
+
+<annonce>
+<lien>https://www.consortium-immobilier.fr/annonce-12345.html</lien>
+<titre>MAISON [12345]</titre>
+<prix>50 000,00 EUR</prix>
+<descriptif>Maison de forêt sympathique avec des oies pour garder la porte d'entrée.</descriptif>
+<ville>Metz</ville>
+<photos><photo>https://picsum.photos/200?random</photo></photos>
+</annonce>
+
+</xml>
