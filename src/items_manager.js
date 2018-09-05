@@ -121,11 +121,14 @@ module.exports = class ItemsManager {
 	}
 
 	async updateItem(oldItem, newItem) {
-		if(oldItem.id != newItem.id)
-			throw Error('Cannot update item with a different id.');
-
-		newItem.$loki = oldItem.$loki;
-		newItem.meta = oldItem.meta;
+		if(!newItem)
+			newItem = oldItem;
+		else {
+			if(oldItem.id != newItem.id)
+				throw Error('Cannot update item with a different id.');
+			newItem.$loki = oldItem.$loki;
+			newItem.meta = oldItem.meta;
+		}
 		this.itemsCollection.update(newItem);
 		await saveDatabase.call(this.db);
 		console.log('Item "%s" updated into database.', newItem.id);

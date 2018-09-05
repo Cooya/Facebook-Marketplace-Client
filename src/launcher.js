@@ -46,10 +46,16 @@ module.exports = class Launcher {
 		for(let item of items) {
 			console.log('Selling item "' + item.title + '"...');
 			await this.itemsSeller.sellItem(item);
-			if(config.commit)
-				await this.itemsManager.updateItemsWithBindings(this.itemsSeller.bindings);
-			await utils.randomSleep(config.commit && config.intervalBetweenSellings);
-			console.log('Item "%s" is now selling.', item.id);
+			if(config.commit) {
+				if(!this.itemsSeller.fbIds[item.title])
+					console.error('The item "%s" has not been found among items for sale.');
+				else {
+					item.fbId = this.itemsSeller.fbIds[item.title];
+					await this.itemsManager.updateItem(item);
+					console.log('Item "%s" is now for sale.', item.id);
+				}
+			}
+			await utils.randomSleep(config.commit ? config.intervalBetweenSellings : 2);
 		}
 	}
 	
@@ -61,11 +67,10 @@ module.exports = class Launcher {
 				continue;
 	
 			console.log('Updating item "%s"...', item.id);
-			const success = await this.itemsSeller.manageItem(item, 'edit');
-			if(success) {
+			if(await this.itemsSeller.manageItem(item, 'edit')) {
 				if(config.commit)
 					await this.itemsManager.updateItem(processedItem, item);
-				await utils.randomSleep(config.commit && config.intervalBetweenSellings);
+				await utils.randomSleep(config.commit ? config.intervalBetweenSellings : 2);
 				console.log('Item "%s" has been updated successfully.', item.id);
 			}
 		}
@@ -82,7 +87,7 @@ module.exports = class Launcher {
 			await this.itemsSeller.manageItem(processedItem, 'remove');
 			if(config.commit)
 				await this.itemsManager.removeItem(processedItem);
-			await utils.randomSleep(config.commit && config.intervalBetweenSellings);
+			await utils.randomSleep(config.commit ? config.intervalBetweenSellings : 2);
 			console.log('Item "%s" has been removed successfully.', id);
 		}
 	}

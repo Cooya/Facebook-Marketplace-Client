@@ -12,7 +12,7 @@ module.exports = class ItemsSeller {
 		this.cookiesFile = config.cookiesFile;
 		this.commit = config.commit;
 		this.headless = config.headless;
-		this.bindings = [];
+		this.fbIds = {};
 	}
 
 	async open() {
@@ -24,9 +24,11 @@ module.exports = class ItemsSeller {
 			if(response.url() == 'https://www.facebook.com/api/graphql/' && response.request().postData().indexOf('MARKETPLACE_SELLING_ITEM_IMAGE_WIDTH') != -1) {
 				console.log('Processing ads list...');
 				let json = await response.json();
-				this.bindings = json.data.viewer.selling_feed_one_page.edges.map((ad) => {
-					return {fbId: ad.node.id, title: ad.node.group_commerce_item_title};
+				json.data.viewer.selling_feed_one_page.edges.forEach((ad) => {
+					if(!this.fbIds[ad.node.group_commerce_item_title])
+						this.fbIds[ad.node.group_commerce_item_title] = ad.node.id;
 				});
+				console.log(this.fbIds);
 			}
 		});
 	}
@@ -37,8 +39,12 @@ module.exports = class ItemsSeller {
 
 		await openSellFormModal.call(this);
 		await fillSellForm.call(this, item);
-		await sleep.sleep(1);
-		await this.page.reload();
+
+		if(this.commit) {
+			await sleep.sleep(1);
+			await this.page.reload();
+			await pup.infiniteScroll(this.page);
+		}
 	}
 
 	async manageItem(item, action) {
@@ -47,10 +53,8 @@ module.exports = class ItemsSeller {
 			'remove': removeItem
 		};
 	
-		if(!this.page.url() != marketplaceUrl) {
+		if(!this.page.url() != marketplaceUrl)
 			await goToMarketPlace.call(this);
-			await sleep.msleep(500);
-		}
 	
 		const itemContainers = await this.page.$$('div.clearfix [direction="left"]');
 		let found = false;
