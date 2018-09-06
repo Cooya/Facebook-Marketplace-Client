@@ -4,14 +4,15 @@ const utils = require('./utils/utils');
 
 (async () => {
 	const itemsManager = new ItemsManager(config);
-	let items = await itemsManager.getProcessedItems();
+	await itemsManager.loadCollection();
+	
+	let items = itemsManager.getItemsForSale();
 	if(!items.length) {
 		console.error('No item to process.');
 		process.exit(1);
 	}
 	
 	items = items.map((item) => {
-		delete item['processed'];
 		delete item['meta'];
 		delete item['$loki'];
 

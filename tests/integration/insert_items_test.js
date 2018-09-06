@@ -102,7 +102,7 @@ describe('items insertion : testing items to insert loading from file and databa
 
 			await launcher.run('posting');
 
-			const items = await launcher.itemsManager.getProcessedItems();
+			const items = launcher.itemsManager.getItemsForSale();
 			assert.equal(items.length, 2);
 			for(let item of items)
 				assert.equal(typeof item.fbId, 'string');

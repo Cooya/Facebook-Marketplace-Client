@@ -70,22 +70,11 @@ module.exports = class Launcher {
 	}
 	
 	async editItems(items) {
-		let processedItem;
 		for(let item of items) {
 			console.log('Updating item "%s"...', item.id);
-
-			processedItem = await this.itemsManager.getProcessedItem(item.id);
-			if(!processedItem)
-				continue;
-
-			if(await this.itemsManager.areEqualItems(processedItem, item)) {
-				console.warn('Item "%s" is already up-to-date.', item.id);
-				continue;
-			}
-	
 			if(await this.itemsSeller.manageItem(item, 'edit')) {
 				if(config.commit)
-					await this.itemsManager.updateItem(processedItem, item);
+					await this.itemsManager.updateItem(item);
 				await utils.randomSleep(config.commit ? config.intervalBetweenSellings : 2);
 				console.log('Item "%s" has been updated successfully.', item.id);
 			}
@@ -93,18 +82,14 @@ module.exports = class Launcher {
 	}
 	
 	async deleteItems(items) {
-		let processedItem;
-		for(let id of items) {
-			processedItem = await this.itemsManager.getProcessedItem(id);
-			if(!processedItem)
-				continue;
-	
-			console.log('Removing item "%s"...', id);
-			await this.itemsSeller.manageItem(processedItem, 'remove');
-			if(config.commit)
-				await this.itemsManager.removeItem(processedItem);
-			await utils.randomSleep(config.commit ? config.intervalBetweenSellings : 2);
-			console.log('Item "%s" has been removed successfully.', id);
+		for(let item of items) {
+			console.log('Removing item "%s"...', item.id);
+			if(await this.itemsSeller.manageItem(item, 'remove')) {
+				if(config.commit)
+					await this.itemsManager.removeItem(item);
+				await utils.randomSleep(config.commit ? config.intervalBetweenSellings : 2);
+				console.log('Item "%s" has been removed successfully.', item.id);
+			}
 		}
 	}
 };

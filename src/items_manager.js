@@ -17,13 +17,21 @@ module.exports = class ItemsManager {
 		this.itemsCollection = null;
 	}
 
-	async getItem(id) {
-		await loadCollection.call(this);
+	async loadCollection() {
+		if(!this.itemsCollection) {
+			await loadDatabase.call(this.db, {});
+			this.itemsCollection = this.db.getCollection('items');
+			if(!this.itemsCollection)
+				this.itemsCollection = this.db.addCollection('items', {unique: ['title', 'id', 'fbId']});
+		}
+	}
+
+	getItem(id) {
 		return this.itemsCollection.findOne({id: id});
 	}
 
-	async getProcessedItem(id) {
-		const item = await this.getItem(id);
+	getItemForSale(id) {
+		const item = this.getItem(id);
 		if(!item) {
 			console.warn('Item "%s" not found into database.', id);
 			return null;
@@ -35,12 +43,11 @@ module.exports = class ItemsManager {
 		return item;
 	}
 
-	async getProcessedItems() {
-		await loadCollection.call(this);
+	getItemsForSale() {
 		return this.itemsCollection.find({fbId: {$ne: null}});
 	}
 
-	async areEqualItems(item1, item2) {
+	areEqualItems(item1, item2) {
 		return item1.id == item2.id &&
 			item1.title == item2.title &&
 			item1.price == item2.price &&
@@ -50,7 +57,7 @@ module.exports = class ItemsManager {
 	}
 
 	async loadItemsToSell(inputFile) {
-		await loadCollection.call(this);
+		await this.loadCollection();
 	
 		// if input file exists
 		if(inputFile && await utils.fileExists(inputFile)) {
@@ -59,7 +66,7 @@ module.exports = class ItemsManager {
 			// read xml file
 			const xml = await utils.readXMLFile(inputFile);
 	
-			// process items
+			// process items from xml content
 			const processedItems = await processItems.call(this, xml.xml.annonce, this.requiredKeys);
 	
 			// save processed items into database
@@ -71,77 +78,82 @@ module.exports = class ItemsManager {
 	}
 
 	async loadItemsToEdit(inputFile) {
-		await loadCollection.call(this);
+		await this.loadCollection();
 
+		// an input file is required
 		if(!inputFile)
 			throw Error('An input file is required.');
 		if(!await utils.fileExists(inputFile))
 			throw Error('The input file "%s" does not exist.'.replace('%s', inputFile));
-		console.log('Loading items from file "%s"...', inputFile);
 
+		// read xml file
+		console.log('Loading items from file "%s"...', inputFile);
 		const xml = await utils.readXMLFile(inputFile);
 		if(!xml.xml.annonce)
 			throw Error('Invalid input file.');
-		return await processItems.call(this, xml.xml.annonce, this.requiredKeys);
+
+		// process items from xml content
+		const processedItems = await processItems.call(this, xml.xml.annonce, this.requiredKeys);
+
+		// check if items are for sale and not already up-to-date
+		return processedItems.reduce((acc, processedItem) => {
+			let itemForSale = this.getItemForSale(processedItem.id);
+			if(!itemForSale)
+				return acc;
+			
+			if(this.areEqualItems(processedItem, itemForSale)) {
+				console.warn('Item "%s" is already up-to-date.', processedItem.id);
+				return acc;
+			}
+
+			// make the correspondance for the future update
+			processedItem.fbId = itemForSale.fbId;
+			processedItem.$loki = itemForSale.$loki;
+			processedItem.meta = itemForSale.meta;
+
+			acc.push(processedItem);
+			return acc;
+		}, []);
 	}
 
 	async loadItemsToRemove(inputFile) {
-		await loadCollection.call(this);
+		await this.loadCollection();
 
+		// an input file is required
 		if(!inputFile)
 			throw Error('An input file is required.');
 		if(!await utils.fileExists(inputFile))
 			throw Error('The input file "%s" does not exist.'.replace('%s', inputFile));
-		console.log('Loading items from file "%s"...', inputFile);
 
+		// read xml file
+		console.log('Loading items from file "%s"...', inputFile);
 		const xml = await utils.readXMLFile(inputFile);
 		if(!xml.xml.lien)
 			throw Error('Invalid input file.');
+
+		// process items from xml content
 		return xml.xml.lien.reduce((acc, link) => {
 			const matchResult = link.match(this.linkRegex);
 			if(!matchResult) {
 				console.error('Link "%s" is invalid.', link);
-				return;
+				return acc;
 			}
-			acc.push(matchResult[1]);
+
+			let itemForSale = this.getItemForSale(matchResult[1]);
+			if(!itemForSale) {
+				console.warn('Item "%s" is not for sale.', matchResult[1]);
+				return acc;
+			}
+
+			acc.push(itemForSale);
 			return acc;
 		}, []);
 	}
-	
-	async updateItemsWithBindings(bindings) {
-		let item;
-		for(let binding of bindings) {
-			item = this.itemsCollection.findOne({title: binding.title});
-			if(!item) {
-				console.error('Unknown item "%s".');
-				continue;
-			}
-			if(item.fbId) {
-				//console.log('Item "%s" already bound into database.', item.id);
-				continue;
-			}
-	
-			item.fbId = binding.fbId;
-			this.itemsCollection.update(item);
-			console.log('Facebook ID added to item "%s" into database.', item.id);
-		}
-	
-		await saveDatabase.call(this.db);
-	}
 
-	async updateItem(oldItem, newItem) {
-		if(!newItem)
-			newItem = oldItem;
-		else {
-			if(oldItem.id != newItem.id)
-				throw Error('Cannot update item with a different id.');
-			newItem.fbId = oldItem.fbId;
-			newItem.$loki = oldItem.$loki;
-			newItem.meta = oldItem.meta;
-		}
-		this.itemsCollection.update(newItem);
+	async updateItem(item) {
+		this.itemsCollection.update(item);
 		await saveDatabase.call(this.db);
-		console.log('Item "%s" updated into database.', newItem.id);
+		console.log('Item "%s" updated into database.', item.id);
 	}
 
 	async removeItem(item) {
@@ -150,15 +162,6 @@ module.exports = class ItemsManager {
 		console.log('Item "%s" deleted from database.', item.id);
 	}
 };
-
-async function loadCollection() {
-	if(!this.itemsCollection) {
-		await loadDatabase.call(this.db, {});
-		this.itemsCollection = this.db.getCollection('items');
-		if(!this.itemsCollection)
-			this.itemsCollection = this.db.addCollection('items', {unique: ['title', 'id', 'fbId']});
-	}
-}
 
 async function processItems(items) {
 	console.log('%s items to process.', items.length);

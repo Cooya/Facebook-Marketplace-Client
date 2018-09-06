@@ -27,34 +27,19 @@ describe('items update : testing items to edit loading from file and database', 
 		catch (e) { }
 	});
 
-	describe('load items from xml file', async () => {
+	describe('load items from xml file with empty database', async () => {
+		let warnings;
 		let errors;
 
 		before(async () => {
+			warnings = mock(console, 'warn');
 			errors = mock(console, 'error');
 		});
 
-		it('should be 3 present items and 1 absent item', async () => {
+		it('should be 0 present item, 1 invalid and 3 not found into database', async () => {
 			const items = await itemsManager.loadItemsToEdit(config.updateInputFile);
-			assert.equal(items.length, 3);
+			assert.equal(items.length, 0);
 
-			assert.equal(items[0].link, 'https://www.consortium-immobilier.fr/annonce-123.html');
-			assert.equal(items[0].pictures.length, 1);
-			assert.equal(items[0].description, 'Jolie maison avec vue sur un parc où l\'on peut aperçevoir des écureuils roux et gris.');
-			assert.equal(items[0].price, '200 000');
-
-			assert.equal(items[1].link, 'https://www.consortium-immobilier.fr/annonce-789.html');
-			assert.equal(items[1].pictures.length, 1);
-			assert.equal(items[1].description, 'Appartement sympa et super insonorisé, vous pouvez faire la fête comme des fous.');
-			assert.equal(items[1].price, '27 000');
-
-			assert.equal(items[2].link, 'https://www.consortium-immobilier.fr/annonce-000.html');
-			assert.equal(items[2].pictures.length, 2);
-			assert.equal(items[2].description, 'Maison en bois, avec toilettes turques.');
-			assert.equal(items[2].price, '250 000');
-		});
-
-		it('should display 1 error', async () => {
 			let missingPicturesCounter = 0;
 			let missingDescriptionCounter = 0;
 			let missingLocationCounter = 0;
@@ -74,10 +59,18 @@ describe('items update : testing items to edit loading from file and database', 
 			assert.equal(missingDescriptionCounter, 0);
 			assert.equal(missingLocationCounter, 1);
 			assert.equal(invalidLinkCounter, 0);
+
+			let itemNotFoundCounter = 0;
+			for (let call of warnings.calls) {
+				if(call.arg == 'Item "%s" not found into database.')
+					itemNotFoundCounter++;
+			}
+
+			assert.equal(itemNotFoundCounter, 3);
 		});
 	});
 
-	describe('update items', async () => {
+	describe('update items from xml file with loaded database', async () => {
 		let launcher;
 
 		before(async () => {
@@ -89,11 +82,12 @@ describe('items update : testing items to edit loading from file and database', 
 			launcher = new Launcher();
 			itemsManager = launcher.itemsManager;
 
-			// load items to sell into database and mark them as processed
+			// load items to sell into database and put them a random facebook id
 			const items = await itemsManager.loadItemsToSell(config.insertInputFile);
-			await itemsManager.updateItemsWithBindings(items.map((item) => {
-				return { fbId: Math.random().toString(36).substring(7), title: item.title };
-			}));
+			for(let item of items) {
+				item.fbId = Math.random().toString(36).substring(7);
+				await itemsManager.updateItem(item);
+			}
 
 			// mock ItemsSeller methods
 			mock(ItemsSeller.prototype, 'open').callFn(() => Promise.resolve());
