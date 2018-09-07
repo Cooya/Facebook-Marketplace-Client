@@ -39,9 +39,23 @@ module.exports = class Launcher {
 			return;
 		}
 		
-		await this.itemsSeller.open();
-		await action.processMethod(items);
-		await this.itemsSeller.close();
+		while(true) {
+			try {
+				await this.itemsSeller.open();
+				await action.processMethod(items);
+			}
+			catch(e) {
+				if(e.message == 'Page crashed!') {
+					console.log('The page has crashed, restarting the process...');
+					await this.itemsSeller.close();
+					continue;
+				}
+				else
+					throw e;
+			}
+			await this.itemsSeller.close();
+			break;
+		}
 	}
 
 	async postItems(items) {

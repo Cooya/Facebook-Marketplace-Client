@@ -169,7 +169,7 @@ async function fillSellForm(item) {
 	for(let i = 0; i < 3; ++i) {
 		await (await this.page.$('input[title="Choose a file to upload"]')).uploadFile(...item.pictures);
 		try {
-			await this.page.waitForSelector('div[role=dialog] button[type="submit"][aria-haspopup="true"]:disabled', {hidden: true}); // :not('disabled') not working
+			await this.page.waitForSelector('div[role=dialog] button[type="submit"][data-testid="react-composer-post-button"]:disabled', {hidden: true}); // :not('disabled') not working
 			break;
 		}
 		catch(e) {
@@ -191,8 +191,8 @@ async function fillSellForm(item) {
 
 	// submit the form if commit mode is enabled
 	if(this.commit) {
-		await this.page.click('div[role=dialog] button[type="submit"][aria-haspopup="true"]');
-		await this.page.waitForSelector('div[role=dialog] button[type="submit"][aria-haspopup="true"]', {hidden: true});
+		await this.page.click('div[role=dialog] button[type="submit"][data-testid="react-composer-post-button"]');
+		await this.page.waitForSelector('div[role=dialog] button[type="submit"][data-testid="react-composer-post-button"]', {hidden: true});
 	}
 	else { // discard the form otherwise
 		await this.page.click('button.layerCancel');

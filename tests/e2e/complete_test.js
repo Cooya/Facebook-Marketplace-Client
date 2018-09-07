@@ -1,5 +1,6 @@
 const assert = require('assert');
 const mock = require('simple-mock').mock;
+const restore = require('simple-mock').restore;
 
 const config = require('../../config');
 const Launcher = require('../../src/launcher');
@@ -22,7 +23,7 @@ describe('complete process test : insert, update and delete', () => {
 		launcher = new Launcher();
 
 		try {
-			//await utils.deleteFile(config.cookiesFile);
+			await utils.deleteFile(config.cookiesFile);
 			await utils.deleteFile(config.dbFile);
 		}
 		catch (e) { }
@@ -35,9 +36,23 @@ describe('complete process test : insert, update and delete', () => {
 		catch (e) { }
 		launcher.itemsSeller.close();
 	});
-	
-	describe('create ad on the facebook marketplace', async () => {
-		it('the item should have a real facebook id', async function() {
+
+	describe('create ad on the facebook marketplace and throw a "page crashed" error', async () => {
+		before(async () => {
+			let errorAlreadyThrown = false;
+			mock(launcher.itemsSeller, 'sellItem').callFn((item) => {
+				if(!errorAlreadyThrown) {
+					errorAlreadyThrown = true;
+					throw Error('Page crashed!');
+				}
+				else {
+					restore(launcher.itemsSeller, 'sellItem');
+					return launcher.itemsSeller.sellItem(item);
+				}
+			});
+		});
+
+		it('should restart the posting process when the error happens', async function() {
 			this.timeout(60000);
 			await launcher.run('posting');
 
