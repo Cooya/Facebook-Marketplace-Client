@@ -23,7 +23,7 @@ describe('complete process test : insert, update and delete', () => {
 		launcher = new Launcher();
 
 		try {
-			await utils.deleteFile(config.cookiesFile);
+			//await utils.deleteFile(config.cookiesFile);
 			await utils.deleteFile(config.dbFile);
 		}
 		catch (e) { }
