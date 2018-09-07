@@ -26,6 +26,12 @@ module.exports  = {
 }
 ```
 
+## Tests
+Il peut être intéressant de lancer les tests pour constater que le script fonctionne bien :
+```bash
+npm test
+```
+
 ## Exécution
 Avant de pouvoir poster des annonces, il est nécessaire de télécharger un fichier XML qui fera office de fichier d'entrée pour compléter la base de données. Il en va de même pour modifier ou supprimer des annonces de la base de données. Pour télécharger depuis l'API de consortium-immobilier.fr chaque fichier correspondant à une action, lancer les commandes suivantes :
 ```bash
