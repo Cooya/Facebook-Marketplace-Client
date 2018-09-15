@@ -43,6 +43,12 @@ async function createPage(browser, cookiesFile) {
 	await page.setViewport({ width: 1600, height: 900 });
 	await page.setExtraHTTPHeaders({ 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8' });
 	if (cookiesFile) await loadCookies(page, cookiesFile);
+	process.on('unhandledRejection', error => {
+		page.screenshot({path: 'error.png'}).then(() => {
+			console.error(error);
+			process.exit(1);
+		});
+	});
 	console.debug('Page created.');
 	return page;
 }
