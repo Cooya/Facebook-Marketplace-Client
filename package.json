@@ -26,7 +26,7 @@
     "download-update-input": "node src/input_downloader.js --route update",
     "download-delete-input": "node src/input_downloader.js --route delete",
     "generate-output": "node src/output_generator.js",
-    "reset": "rm -f assets/cookies.json && rm -f assets/db.json && rm -rf assets/pictures && rm -rf node_modules",
+    "reset": "rm -f config.js && rm -f assets/cookies.json && rm -f assets/db.json && rm -rf assets/pictures && rm -rf node_modules",
     "lint": "eslint ."
   },
   "author": "Coya",
