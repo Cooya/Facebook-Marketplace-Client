@@ -169,6 +169,7 @@ async function processItems(items) {
 
 	const processedItems = [];
 	await asyncForEach(items, async (item) => {
+		console.log('Processing item "%s"...', item.titre[0]);
 		let processedItem = {};
 		processedItem.link = item.lien[0];
 		processedItem.title = item.titre[0];

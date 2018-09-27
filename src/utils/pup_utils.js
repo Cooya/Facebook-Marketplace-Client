@@ -75,6 +75,9 @@ async function goTo(page, url, timeout) {
 				throw e;
 		}
 	}
+
+	if(page.url() != url)
+		throw Error('The current page is not the destination page.');
 }
 
 async function scrollPage(page, selector, xPosition = 1) {
