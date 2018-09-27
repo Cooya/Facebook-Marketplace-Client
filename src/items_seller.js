@@ -194,8 +194,13 @@ async function fillSellForm(item) {
 
 	// submit the form if commit mode is enabled
 	if(this.commit) {
-		await this.page.click('div[role=dialog] button[type="submit"][data-testid="react-composer-post-button"]');
-		await this.page.waitForSelector('div[role=dialog] button[type="submit"][data-testid="react-composer-post-button"]', {hidden: true});
+		const submitButtonSelector = 'div[role=dialog] button[type="submit"][data-testid="react-composer-post-button"]';
+		if((await pup.attribute(this.page, submitButtonSelector, 'innerText')) == 'Next') {
+			await this.page.click(submitButtonSelector);
+			await sleep.sleep(3);
+		}
+		await this.page.click(submitButtonSelector);
+		await this.page.waitForSelector(submitButtonSelector, {hidden: true});
 	}
 	else { // discard the form otherwise
 		await this.page.click('button.layerCancel');
