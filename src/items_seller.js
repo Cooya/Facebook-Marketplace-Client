@@ -84,7 +84,6 @@ async function goToMarketPlace() {
 	const loginForm = await this.page.$('#login_form');
 	if(loginForm) { // log in if needed
 		await logIn.call(this);
-		await this.page.waitForNavigation();
 		await sleep.sleep(1);
 		await pup.saveCookies(this.page, this.cookiesFile);
 	}
@@ -100,6 +99,10 @@ async function logIn() {
 	await this.page.type('#pass', this.password);
 	await sleep.msleep(500);
 	await this.page.click('#loginbutton');
+	await this.page.waitForNavigation();
+	const loginButton = await this.page.$('#loginbutton');
+	if(loginButton)
+		throw Error('The log in has failed.');
 	console.log('Logged in.');
 }
 

@@ -1,7 +1,7 @@
 const assert = require('assert');
 
-const pup = require('../../src/utils/pup_utils');
 const config = require('../../config');
+const pup = require('../../src/utils/pup_utils');
 
 describe('test for page redirection', async () => {
 	let browser;
@@ -11,7 +11,7 @@ describe('test for page redirection', async () => {
 	});
 
 	it('should throw an error', async function() {
-		this.timeout(10000);
+		this.timeout(20000);
 
 		browser = await pup.runBrowser(config);
 		const page = await pup.createPage(browser);
@@ -21,7 +21,6 @@ describe('test for page redirection', async () => {
 			await pup.goTo(page, 'https://www.facebook.com/marketplace');
 		}
 		catch(e) {
-			console.log(e.message);
 			error = e;
 		}
 
