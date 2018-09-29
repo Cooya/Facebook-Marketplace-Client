@@ -44,7 +44,7 @@ async function createPage(browser, cookiesFile) {
 	await page.setExtraHTTPHeaders({ 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8' });
 	if (cookiesFile) await loadCookies(page, cookiesFile);
 	process.on('unhandledRejection', error => {
-		page.screenshot({path: 'error.png'}).then(() => {
+		page.screenshot({ path: 'error.png' }).then(() => {
 			console.error(error);
 			process.exit(1);
 		});
@@ -76,7 +76,7 @@ async function goTo(page, url, timeout) {
 		}
 	}
 
-	if(page.url() != url)
+	if (page.url() != url)
 		throw Error('The current page is not the destination page.');
 }
 
@@ -110,18 +110,16 @@ async function infiniteScroll(page) {
 	}
 }
 
-async function click(page, element, timeout) {
+async function click(page, element, timeout = 30) {
 	console.log('Clicking on element...');
 
-	const options = timeout ? { timeout: timeout } : {};
 	let again = true;
 	while (again) {
 		try {
-			const navigationPromise = page.waitForNavigation(options);
 			await page.evaluate((el) => {
 				el.click();
 			}, element);
-			await navigationPromise;
+			await page.waitForNavigation({ timeout: timeout });
 			again = false;
 		}
 		catch (e) {
@@ -135,13 +133,28 @@ async function click(page, element, timeout) {
 	}
 }
 
-async function reloadPage(page, timeout) {
+async function reloadPage(page, timeout = 30, attempts = 5) {
 	console.log('Reloading page...');
 
-	const options = timeout ? { timeout: timeout } : {};
-	const navigationPromise = page.waitForNavigation(options);
-	await page.evaluate('location.reload()');
-	await navigationPromise;
+	for (let i = 0; i < attempts; ++i) {
+		try {
+			await page.reload({ timeout: timeout });
+
+			// old version
+			//await page.evaluate('location.reload()');
+			//await page.waitForNavigation({timeout: timeout});
+
+			return;
+		}
+		catch (e) {
+			if (e.message.indexOf('Navigation Timeout Exceeded') != -1)
+				console.error('Page reloading timeout !');
+			else
+				throw e;
+		}
+	}
+
+	throw Error('The internet connection seems lost because the page cannot be reloaded.');
 }
 
 async function loadCookies(page, cookiesFile) {
