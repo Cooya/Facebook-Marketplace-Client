@@ -56,7 +56,7 @@ module.exports = class ItemsSeller {
 		let found = false;
 		for(let itemContainer of itemContainers) {
 			if(await itemContainer.$('span[title="' + item.title + '"')) {
-				await this.page.click('a > span > i[alt=""]');
+				await (await itemContainer.$('a > span > i[alt=""]')).click();
 				await this.page.waitForSelector('li[role="presentation"] > a[role="menuitem"]');
 				await sleep.msleep(500);
 				await actions[action].call(this, item);
