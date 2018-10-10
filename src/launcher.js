@@ -59,7 +59,9 @@ module.exports = class Launcher {
 	}
 
 	async postItems(items) {
-		for(let item of items) {
+		let item;
+		for(let i = 0; i < items.length; ++i) {
+			item = item[i];
 			console.log('Putting item "%s" for sale...', item.id);
 
 			if(this.itemsSeller.fbIds[item.title]) {
@@ -79,30 +81,41 @@ module.exports = class Launcher {
 					console.log('Item "%s" is now for sale.', item.id);
 				}
 			}
-			await utils.randomSleep(config.commit ? config.intervalBetweenActions : 2);
+			
+			if(i != items.length - 1)
+				await utils.randomSleep(config.commit ? config.intervalBetweenActions : 2);
 		}
 	}
 	
 	async editItems(items) {
-		for(let item of items) {
+		let item;
+		for(let i = 0; i < items.length; ++i) {
+			item = item[i];
 			console.log('Updating item "%s"...', item.id);
+
 			if(await this.itemsSeller.manageItem(item, 'edit')) {
 				if(config.commit)
 					await this.itemsManager.updateItem(item);
 				console.log('Item "%s" has been updated successfully.', item.id);
-				await utils.randomSleep(config.commit ? config.intervalBetweenActions : 2);
+
+				if(i != items.length - 1)
+					await utils.randomSleep(config.commit ? config.intervalBetweenActions : 2);
 			}
 		}
 	}
 	
 	async deleteItems(items) {
-		for(let item of items) {
+		let item;
+		for(let i = 0; i < items.length; ++i) {
+			item = item[i];
 			console.log('Removing item "%s"...', item.id);
 			if(await this.itemsSeller.manageItem(item, 'remove')) {
 				if(config.commit)
 					await this.itemsManager.removeItem(item);
 				console.log('Item "%s" has been removed successfully.', item.id);
-				await utils.randomSleep(config.commit ? config.intervalBetweenActions : 2);
+				
+				if(i != items.length - 1)
+					await utils.randomSleep(config.commit ? config.intervalBetweenActions : 2);
 			}
 		}
 	}
