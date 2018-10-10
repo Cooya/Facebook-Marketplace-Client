@@ -11,7 +11,7 @@ describe('test for page redirection', async () => {
 	});
 
 	it('should throw an error', async function() {
-		this.timeout(20000);
+		this.timeout(config.testsTimeout);
 
 		browser = await pup.runBrowser(config);
 		const page = await pup.createPage(browser);

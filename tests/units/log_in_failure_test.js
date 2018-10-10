@@ -20,7 +20,7 @@ describe('test log in failure', async () => {
 	});
 
 	it('should throw a bad log in error', async function() {
-		this.timeout(20000);
+		this.timeout(config.testsTimeout);
 
 		let error = {};
 		try {

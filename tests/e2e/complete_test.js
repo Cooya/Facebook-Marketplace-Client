@@ -53,7 +53,7 @@ describe('complete process test : insert, update and delete', () => {
 		});
 
 		it('should restart the posting process when the error happens', async function() {
-			this.timeout(60000);
+			this.timeout(config.testsTimeout);
 			await launcher.run('posting');
 
 			const item = await launcher.itemsManager.getItem('12345');
@@ -63,7 +63,7 @@ describe('complete process test : insert, update and delete', () => {
 
 	describe('create ad that already exists on the facebook marketplace', async () => {
 		it('should do nothing', async function() {
-			this.timeout(60000);
+			this.timeout(config.testsTimeout);
 			await launcher.run('posting');
 
 			let counter = 0;
@@ -78,7 +78,7 @@ describe('complete process test : insert, update and delete', () => {
 
 	describe('update existing ad on the facebook marketplace', async () => {
 		it('the item should have updates', async function() {
-			this.timeout(60000);
+			this.timeout(config.testsTimeout);
 			await launcher.run('edition');
 
 			const item = await launcher.itemsManager.getItem('12345');
@@ -91,7 +91,7 @@ describe('complete process test : insert, update and delete', () => {
 
 	describe('update already up-to-date ad on the facebook marketplace', async () => {
 		it('should do nothing', async function() {
-			this.timeout(60000);
+			this.timeout(config.testsTimeout);
 			await launcher.run('edition');
 
 			let counter = 0;
@@ -106,7 +106,7 @@ describe('complete process test : insert, update and delete', () => {
 
 	describe('delete existing ad on the facebook marketplace', async () => {
 		it('the item should not be present into database', async function() {
-			this.timeout(60000);
+			this.timeout(config.testsTimeout);
 			await launcher.run('deletion');
 
 			const item = await launcher.itemsManager.getItem('12345');
@@ -116,7 +116,7 @@ describe('complete process test : insert, update and delete', () => {
 
 	describe('delete non-existing ad on the facebook marketplace', async () => {
 		it('it should do nothing', async function() {
-			this.timeout(60000);
+			this.timeout(config.testsTimeout);
 			await launcher.run('deletion');
 
 			let counter = 0;
