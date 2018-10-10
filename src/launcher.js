@@ -79,7 +79,7 @@ module.exports = class Launcher {
 					console.log('Item "%s" is now for sale.', item.id);
 				}
 			}
-			await utils.randomSleep(config.commit ? config.intervalBetweenSellings : 2);
+			await utils.randomSleep(config.commit ? config.intervalBetweenActions : 2);
 		}
 	}
 	
@@ -90,7 +90,7 @@ module.exports = class Launcher {
 				if(config.commit)
 					await this.itemsManager.updateItem(item);
 				console.log('Item "%s" has been updated successfully.', item.id);
-				await utils.randomSleep(config.commit ? config.intervalBetweenSellings : 2);
+				await utils.randomSleep(config.commit ? config.intervalBetweenActions : 2);
 			}
 		}
 	}
@@ -102,7 +102,7 @@ module.exports = class Launcher {
 				if(config.commit)
 					await this.itemsManager.removeItem(item);
 				console.log('Item "%s" has been removed successfully.', item.id);
-				await utils.randomSleep(config.commit ? config.intervalBetweenSellings : 2);
+				await utils.randomSleep(config.commit ? config.intervalBetweenActions : 2);
 			}
 		}
 	}

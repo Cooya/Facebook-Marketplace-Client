@@ -22,7 +22,7 @@ module.exports = class ItemsSeller {
 
 		this.page.on('response', async (response) => {
 			if(response.url() == 'https://www.facebook.com/api/graphql/' && response.request().postData().indexOf('MARKETPLACE_SELLING_ITEM_IMAGE_WIDTH') != -1) {
-				//console.log('Processing ads list...');
+				console.log('Processing ads list...');
 				let json = await response.json();
 				json.data.viewer.selling_feed_one_page.edges.forEach((ad) => {
 					if(!this.fbIds[ad.node.group_commerce_item_title])
@@ -42,7 +42,7 @@ module.exports = class ItemsSeller {
 		if(this.commit) {
 			await sleep.sleep(1);
 			await this.page.reload();
-			await pup.infiniteScroll(this.page);
+			await sleep.sleep(3); // wait for the request response from the graphql api
 		}
 	}
 

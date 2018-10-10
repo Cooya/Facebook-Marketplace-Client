@@ -8,8 +8,13 @@ const Launcher = require('./launcher');
 	const args = process.argv.slice(2);
 	let action = null;
 	for (let i in args) {
-		if (args[i] == '--action')
-			action = i < args.length && args[Number.parseInt(i) + 1];
+		i = parseInt(i);
+		if (args[i] == '--action' && i < args.length)
+			action = args[i + 1];
+		if (args[i] == '--interval' && i < args.length) {
+			config.intervalBetweenActions = [args[i + 1], args[i + 1]];
+			console.log('Interval between each action set up to % seconds.', args[i + 1]);
+		}
 	}
 
 	const launcher = new Launcher();
