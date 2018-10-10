@@ -98,12 +98,14 @@ describe('items update : testing items to edit loading from file and database', 
 
 		it('one item should be updated', async () => {
 			let item = await itemsManager.getItem('123');
+			assert.equal(item.title, 'MAISON [123]');
 			assert.equal(item.price, '300 000');
 			assert.equal(item.description, 'Jolie maison avec vue sur un parc où l\'on peut aperçevoir des écureuils roux.');
 
 			await launcher.run('edition');
 
 			item = await itemsManager.getItem('123');
+			assert.equal(item.title, 'MAISONNETTE [123]');
 			assert.equal(item.price, '200 000');
 			assert.equal(item.description, 'Jolie maison avec vue sur un parc où l\'on peut aperçevoir des écureuils roux et gris.');
 		});

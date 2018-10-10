@@ -110,6 +110,7 @@ module.exports = class ItemsManager {
 			processedItem.fbId = itemForSale.fbId;
 			processedItem.$loki = itemForSale.$loki;
 			processedItem.meta = itemForSale.meta;
+			processedItem.oldTitle = itemForSale.title; // if the title should be changed, we keep the old one to select the item among the items for sale
 
 			acc.push(processedItem);
 			return acc;

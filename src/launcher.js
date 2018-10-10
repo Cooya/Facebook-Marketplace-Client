@@ -61,7 +61,7 @@ module.exports = class Launcher {
 	async postItems(items) {
 		let item;
 		for(let i = 0; i < items.length; ++i) {
-			item = item[i];
+			item = items[i];
 			console.log('Putting item "%s" for sale...', item.id);
 
 			if(this.itemsSeller.fbIds[item.title]) {
@@ -90,7 +90,7 @@ module.exports = class Launcher {
 	async editItems(items) {
 		let item;
 		for(let i = 0; i < items.length; ++i) {
-			item = item[i];
+			item = items[i];
 			console.log('Updating item "%s"...', item.id);
 
 			if(await this.itemsSeller.manageItem(item, 'edit')) {
@@ -107,7 +107,7 @@ module.exports = class Launcher {
 	async deleteItems(items) {
 		let item;
 		for(let i = 0; i < items.length; ++i) {
-			item = item[i];
+			item = items[i];
 			console.log('Removing item "%s"...', item.id);
 			if(await this.itemsSeller.manageItem(item, 'remove')) {
 				if(config.commit)

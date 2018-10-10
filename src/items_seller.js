@@ -54,9 +54,11 @@ module.exports = class ItemsSeller {
 	
 		const itemContainers = await this.page.$$('div.clearfix [direction="left"]');
 		let found = false;
+		let actionSelectorButton;
 		for(let itemContainer of itemContainers) {
-			if(await itemContainer.$('span[title="' + item.title + '"')) {
-				await (await itemContainer.$('a > span > i[alt=""]')).click();
+			if(await itemContainer.$('span[title="' + (item.oldTitle || item.title) + '"')) {
+				actionSelectorButton = await itemContainer.$('a > span > i[alt=""]');
+				await actionSelectorButton.click();
 				await this.page.waitForSelector('li[role="presentation"] > a[role="menuitem"]');
 				await sleep.msleep(500);
 				await actions[action].call(this, item);
@@ -213,7 +215,7 @@ async function fillSellForm(item) {
 }
 
 async function editItem(item) {
-	await this.page.click('li[role="presentation"]:nth-child(2) > a[role="menuitem"]');
+	await this.page.click('div.uiLayer:not(.hidden_elem) li[role="presentation"]:nth-child(2) > a[role="menuitem"]'); // the ".hidden_elem" is important
 	await this.page.waitForSelector('div[role=dialog] input');
 	await sleep.sleep(1);
 	await fillSellForm.call(this, item);
