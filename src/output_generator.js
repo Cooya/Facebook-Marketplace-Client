@@ -4,9 +4,9 @@ const utils = require('./utils/utils');
 
 (async () => {
 	const itemsManager = new ItemsManager(config);
-	await itemsManager.loadCollection();
+	await itemsManager.connect();
 	
-	let items = itemsManager.getItemsForSale();
+	let items = await itemsManager.getItemsForSale();
 	if(!items.length) {
 		console.error('No item to process.');
 		process.exit(1);

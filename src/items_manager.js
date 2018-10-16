@@ -17,7 +17,7 @@ module.exports = class ItemsManager {
 		this.itemsCollection = null;
 	}
 
-	async loadCollection() {
+	async connect() {
 		if(!this.itemsCollection) {
 			await loadDatabase.call(this.db, {});
 			this.itemsCollection = this.db.getCollection('items');
@@ -57,7 +57,7 @@ module.exports = class ItemsManager {
 	}
 
 	async loadItemsToSell(inputFile) {
-		await this.loadCollection();
+		await this.connect();
 	
 		// if input file exists
 		if(inputFile && await utils.fileExists(inputFile)) {
@@ -67,7 +67,7 @@ module.exports = class ItemsManager {
 			const xml = await utils.readXMLFile(inputFile);
 	
 			// process items from xml content
-			const processedItems = await processItems.call(this, xml.xml.annonce, this.requiredKeys);
+			const processedItems = await processItems.call(this, xml.xml.annonce);
 	
 			// save processed items into database
 			await saveItemsIntoDatabase.call(this, processedItems);
@@ -78,7 +78,7 @@ module.exports = class ItemsManager {
 	}
 
 	async loadItemsToEdit(inputFile) {
-		await this.loadCollection();
+		await this.connect();
 
 		// an input file is required
 		if(!inputFile)
@@ -93,7 +93,7 @@ module.exports = class ItemsManager {
 			throw Error('Invalid input file.');
 
 		// process items from xml content
-		const processedItems = await processItems.call(this, xml.xml.annonce, this.requiredKeys);
+		const processedItems = await processItems.call(this, xml.xml.annonce);
 
 		// check if items are for sale and not already up-to-date
 		return processedItems.reduce((acc, processedItem) => {
@@ -118,7 +118,7 @@ module.exports = class ItemsManager {
 	}
 
 	async loadItemsToRemove(inputFile) {
-		await this.loadCollection();
+		await this.connect();
 
 		// an input file is required
 		if(!inputFile)
