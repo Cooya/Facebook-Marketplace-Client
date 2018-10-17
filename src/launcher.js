@@ -28,17 +28,22 @@ module.exports = class Launcher {
 	}
 
 	async run(action) {
+		// select the action to execute
 		if(!this.actions[action])
 			throw Error('Invalid provided action.');
-
 		action = this.actions[action];
 
+		// connection to the database
+		await this.itemsManager.connect();
+
+		// load items to process
 		const items = await action.loadMethod(action.inputFile);
 		if(!items.length) {
 			console.warn('No item to process.');
 			return;
 		}
 		
+		// process items
 		while(true) {
 			try {
 				await this.itemsSeller.open();

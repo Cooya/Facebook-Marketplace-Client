@@ -6,6 +6,13 @@ module.exports  = {
     deleteInputFile: 'assets/deleteInput.xml', // fichier d'entrée contenant les annonces à retirer
     outputFile: 'assets/output.xml', // fichier généré en sortie
     dbFile: 'assets/db.json', // fichier contenant le datastore (base de données portable) du projet
+    mysql: { // identifiants pour accéder à la base de données MySQL
+		host: 'localhost',
+		user: '',
+		password: '',
+        database: '',
+        schemaFile: 'assets/dbSchema.sql'
+	},
     login: '', // votre identifiant Facebook
     password: '', // votre mot de passe Facebook
     itemCategory: 'Property For Sale', // la catégorie des objets à mettre en vente (doit être en anglais)

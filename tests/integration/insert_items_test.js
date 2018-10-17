@@ -1,5 +1,9 @@
 const assert = require('assert');
+const fs = require('fs');
 const mock = require('simple-mock').mock;
+const util = require('util');
+
+const readFile = util.promisify(fs.readFile);
 
 const config = require('../../config');
 const ItemsManager = require('../../src/items_manager');
@@ -12,11 +16,17 @@ describe('items insertion : testing items to insert loading from file and databa
 
 	before(async () => {
 		mock(utils, 'downloadFile').callFn((url) => Promise.resolve(url));
+		const mysql = config.mysql;
+		mysql.database = 'Tests';
+		mock(config, 'mysql', mysql);
 		mock(config, 'dbFile', 'tests/integration/db.json');
 		mock(config, 'insertInputFile', 'tests/integration/insert_sample.xml');
 		mock(config, 'commit', true);
 
-		itemsManager = new ItemsManager(config);
+		itemsManager = new ItemsManager(config, false);
+		await itemsManager.connect();
+		await createDatabase(itemsManager.connection, config.mysql.database);
+		await runQuery(itemsManager.connection, (await readFile(config.mysql.schemaFile)).toString());
 
 		try {
 			await utils.deleteFile(config.dbFile);
@@ -41,6 +51,8 @@ describe('items insertion : testing items to insert loading from file and databa
 		it('should be 2 present items and 4 absent items', async () => {
 			const items = await itemsManager.loadItemsToSell(config.insertInputFile);
 			assert.equal(items.length, 2);
+
+			console.log(items);
 
 			assert.equal(items[0].link, 'https://www.consortium-immobilier.fr/annonce-123.html');
 			assert.equal(items[0].pictures.length, 1);
@@ -109,3 +121,25 @@ describe('items insertion : testing items to insert loading from file and databa
 		});
 	});
 });
+
+function createDatabase(connection, name) {
+	return new Promise((resolve, reject) => {
+		connection.query('CREATE DATABASE IF NOT EXISTS ' + name, (err) => {
+			if (err) reject(err);
+			else
+				connection.query('USE ' + name, (err) => {
+					if(err) reject(err);
+					else resolve();
+				});
+		});
+	});
+}
+
+function runQuery(connection, query) {
+	return new Promise((resolve, reject) => {
+		connection.query(query, function (err) {
+			if (err) reject(err);
+			else resolve();
+		});
+	});
+}
