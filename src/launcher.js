@@ -48,10 +48,16 @@ module.exports = class Launcher {
 			try {
 				await this.itemsSeller.open();
 				await action.processMethod(items);
+				console.log('Process done.');
 			}
 			catch(e) {
 				if(e.message == 'Page crashed!') {
-					console.log('The page has crashed, restarting the process...');
+					console.error('The page has crashed, restarting the process...');
+					await this.itemsSeller.close();
+					continue;
+				}
+				else if(e.message.indexOf('net::ERR_NAME_NOT_RESOLVED') != -1) {
+					console.error('The DNS request has failed, restarting the process...');
 					await this.itemsSeller.close();
 					continue;
 				}
@@ -71,7 +77,8 @@ module.exports = class Launcher {
 
 			if(this.itemsSeller.fbIds[item.title]) {
 				console.warn('Item "%s" is already for sale.', item.id);
-				item.fbId = this.itemsSeller.fbIds[item.title];
+				item.facebook_id = this.itemsSeller.fbIds[item.title];
+				item.sent_at = new Date();
 				await this.itemsManager.updateItem(item);
 				continue;
 			}
@@ -81,7 +88,8 @@ module.exports = class Launcher {
 				if(!this.itemsSeller.fbIds[item.title])
 					console.error('The item "%s" has not been found among items for sale.', item.id);
 				else {
-					item.fbId = this.itemsSeller.fbIds[item.title];
+					item.facebook_id = this.itemsSeller.fbIds[item.title];
+					item.sent_at = new Date();
 					await this.itemsManager.updateItem(item);
 					console.log('Item "%s" is now for sale.', item.id);
 				}
@@ -99,8 +107,10 @@ module.exports = class Launcher {
 			console.log('Updating item "%s"...', item.id);
 
 			if(await this.itemsSeller.manageItem(item, 'edit')) {
-				if(config.commit)
+				if(config.commit) {
+					item.updated_at = new Date();
 					await this.itemsManager.updateItem(item);
+				}
 				console.log('Item "%s" has been updated successfully.', item.id);
 
 				if(i != items.length - 1)
@@ -115,8 +125,10 @@ module.exports = class Launcher {
 			item = items[i];
 			console.log('Removing item "%s"...', item.id);
 			if(await this.itemsSeller.manageItem(item, 'remove')) {
-				if(config.commit)
-					await this.itemsManager.removeItem(item);
+				if(config.commit) {
+					item.deleted_at = new Date();
+					await this.itemsManager.updateItem(item);
+				}
 				console.log('Item "%s" has been removed successfully.', item.id);
 				
 				if(i != items.length - 1)

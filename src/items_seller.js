@@ -13,6 +13,9 @@ module.exports = class ItemsSeller {
 		this.commit = config.commit;
 		this.headless = config.headless;
 		this.fbIds = {};
+
+		this.browser = null;
+		this.page = null;
 	}
 
 	async open() {
@@ -42,7 +45,7 @@ module.exports = class ItemsSeller {
 		if(this.commit) {
 			await sleep.sleep(1);
 			await this.page.reload();
-			await sleep.sleep(3); // wait for the request response from the graphql api
+			await sleep.sleep(5); // wait for the request response from the graphql api
 		}
 	}
 
@@ -144,7 +147,7 @@ async function fillSellForm(item) {
 	// location
 	await this.page.click('input[placeholder="Add Location"]'); // select all the location text
 	await sleep.msleep(500);
-	await this.page.type('input[placeholder="Add Location"]', item.location);
+	await this.page.type('input[placeholder="Add Location"]', item.city);
 	await sleep.msleep(2000);
 	await this.page.keyboard.press('ArrowDown');
 	await sleep.msleep(500);
@@ -154,7 +157,7 @@ async function fillSellForm(item) {
 	// category
 	await this.page.click('input[placeholder="Select a Category"]'); // select all the category text
 	await sleep.msleep(500);
-	await this.page.type('input[placeholder="Select a Category"]', item.category);
+	await this.page.type('input[placeholder="Select a Category"]', item.type);
 	await sleep.msleep(500);
 	await this.page.keyboard.press('ArrowDown');
 	await sleep.msleep(500);
@@ -172,7 +175,7 @@ async function fillSellForm(item) {
 	await cleanPictures(); // remove previous pictures if needed
 
 	for(let i = 0; i < 3; ++i) {
-		await (await this.page.$('input[title="Choose a file to upload"]')).uploadFile(...item.pictures);
+		await (await this.page.$('input[title="Choose a file to upload"]')).uploadFile(...item.url_photo);
 		try {
 			await this.page.waitForSelector('div[role=dialog] button[type="submit"][data-testid="react-composer-post-button"]:disabled', {hidden: true}); // :not('disabled') not working
 			break;

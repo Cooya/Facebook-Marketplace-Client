@@ -11,30 +11,26 @@ describe('complete process test : insert, update and delete', () => {
 	let warnings;
 
 	before(async () => {
-		mock(config, 'dbFile', 'tests/e2e/db.json');
 		mock(config, 'insertInputFile', 'tests/e2e/insert_sample.xml');
 		mock(config, 'updateInputFile', 'tests/e2e/update_sample.xml');
 		mock(config, 'deleteInputFile', 'tests/e2e/delete_sample.xml');
 		mock(config, 'commit', true);
 
+		const mysql = config.mysql;
+		mysql.database = 'Tests';
+		mock(config, 'mysql', mysql);		
+
 		mock(utils, 'randomSleep').callFn(() => Promise.resolve());
 		warnings = mock(console, 'warn');
 
 		launcher = new Launcher();
-
-		try {
-			//await utils.deleteFile(config.cookiesFile);
-			await utils.deleteFile(config.dbFile);
-		}
-		catch (e) { }
+		await launcher.itemsManager.connect();
+		await launcher.itemsManager.clearItems();
 	});
 
 	after(async () => {
-		try {
-			await utils.deleteFile(config.dbFile);
-		}
-		catch (e) { }
-		launcher.itemsSeller.close();
+		await launcher.itemsManager.end();
+		await launcher.itemsSeller.close();
 	});
 
 	describe('create ad on the facebook marketplace and throw a "page crashed" error', async () => {
@@ -57,11 +53,11 @@ describe('complete process test : insert, update and delete', () => {
 			await launcher.run('posting');
 
 			const item = await launcher.itemsManager.getItem('12345');
-			assert.notEqual(item.fbId, null);
+			assert.notEqual(item.facebook_id, null);
 		});
 	});
 
-	describe('create ad that already exists on the facebook marketplace', async () => {
+	describe('try to create an ad that already exists on the facebook marketplace', async () => {
 		it('should do nothing', async function() {
 			this.timeout(config.testsTimeout);
 			await launcher.run('posting');
@@ -82,10 +78,10 @@ describe('complete process test : insert, update and delete', () => {
 			await launcher.run('edition');
 
 			const item = await launcher.itemsManager.getItem('12345');
-			assert.notEqual(item.fbId, null);
+			assert.notEqual(item.facebook_id, null);
 			assert.equal(item.price, '50 000');
 			assert.equal(item.description, 'Maison de forêt sympathique avec des oies pour garder la porte d\'entrée.');
-			assert.equal(item.location, 'Metz');
+			assert.equal(item.city, 'Metz');
 		});
 	});
 

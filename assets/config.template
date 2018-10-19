@@ -11,7 +11,7 @@ module.exports  = {
 		user: '',
 		password: '',
         database: '',
-        schemaFile: 'assets/dbSchema.sql'
+        schemaFile: 'assets/db_schema.sql'
 	},
     login: '', // votre identifiant Facebook
     password: '', // votre mot de passe Facebook

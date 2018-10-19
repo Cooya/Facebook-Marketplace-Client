@@ -23,21 +23,21 @@ DROP TABLE IF EXISTS `facebook_ad`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `facebook_ad` (
-  `id` int(11) NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `sent_at` timestamp(6) NULL DEFAULT NULL,
   `updated_at` timestamp(6) NULL DEFAULT NULL,
   `deleted_at` timestamp(6) NULL DEFAULT NULL,
   `title` varchar(45) NOT NULL,
-  `site_url` varchar(45) DEFAULT NULL,
+  `url_site` varchar(100) NOT NULL,
   `type` varchar(45) NOT NULL,
   `price` varchar(45) DEFAULT NULL,
   `description` text,
   `city` varchar(45) DEFAULT NULL,
-  `picture_url` text,
+  `url_photo` text,
   `published` bit(1) DEFAULT NULL,
   `facebook_id` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`id`)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -48,13 +48,13 @@ DROP TABLE IF EXISTS `facebook_user`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `facebook_user` (
-  `id` int(11) NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `phone` varchar(45) DEFAULT NULL,
   `email` varchar(45) DEFAULT NULL,
   `first_name` text,
   `last_name` text,
   PRIMARY KEY (`id`)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -65,11 +65,11 @@ DROP TABLE IF EXISTS `facebook_user_ad`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `facebook_user_ad` (
-  `id` int(11) NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `id_facebook_user` int(11) NOT NULL,
   `id_facebook_ad` int(11) NOT NULL,
   PRIMARY KEY (`id`)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -81,4 +81,4 @@ CREATE TABLE `facebook_user_ad` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed
+-- Dump completed on 2018-10-18 21:54:02

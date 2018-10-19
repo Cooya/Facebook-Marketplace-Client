@@ -4,3 +4,4 @@
 * ~~ne pas lancer un sleeping s'il n'y a plus d'action à traiter~~
 * créer une commande "npm run sync" qui vérifie (et qui corrige) la base de données ou les objets en vente s'il y a une différence entre les deux
 * ~~sélection d'une annonce à modifier ou à supprimer via le lien et non le titre~~
+* améliorer l'attente de la réception de la requête GraphQL qui permet de d'obtenir la liste des annonces en ligne

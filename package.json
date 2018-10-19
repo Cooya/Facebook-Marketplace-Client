@@ -20,6 +20,7 @@
   "scripts": {
     "test": "eslint . && mocha $(find tests -name '*.js')",
     "integration-tests": "mocha tests/integration",
+    "e2e-tests": "mocha tests/e2e",
     "start": "node src/index.js --action posting",
     "post-ads": "node src/index.js --action posting",
     "edit-ads": "node src/index.js --action edition",
