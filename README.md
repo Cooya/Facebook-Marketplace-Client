@@ -17,6 +17,13 @@ module.exports  = {
   deleteInputFile: 'assets/deleteInput.xml', // fichier d'entrée contenant les annonces à retirer
   outputFile: 'assets/output.xml', // fichier généré en sortie
   dbFile: 'assets/db.json', // fichier contenant le datastore (base de données portable) du projet
+  mysql: { // identifiants pour accéder à la base de données MySQL
+		host: 'localhost',
+		user: 'TO_COMPLETE',
+		password: 'TO_COMPLETE',
+    database: 'TO_COMPLETE',
+    schemaFile: 'assets/db_schema.sql'
+	},
   login: 'TO_COMPLETE', // votre identifiant Facebook
   password: 'TO_COMPLETE', // votre mot de passe Facebook
   itemCategory: 'Property For Sale', // la catégorie des objets à mettre en vente (doit être en anglais)
@@ -24,6 +31,10 @@ module.exports  = {
   commit: false, // lorsque cette valeur vaut false, la mise en vente est simplement simulée, mettre à true si vous souhaitez réellement mettre les items en vente
   intervalBetweenActions: [30, 300] // intervalle minimum et maximum en secondes entre chaque action (mise en vente, édition ou suppression)
 }
+```
+Le projet nécessite une base de données MySQL, pour la remplir, il suffit de lancer la commande suivante :
+```bash
+npm run set-up-database
 ```
 
 ## Tests
