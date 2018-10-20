@@ -13,6 +13,7 @@ module.exports = class ItemsSeller {
 		this.commit = config.commit;
 		this.headless = config.headless;
 		this.fbIds = {};
+		this.adsListReceived = false;
 
 		this.browser = null;
 		this.page = null;
@@ -32,6 +33,7 @@ module.exports = class ItemsSeller {
 						this.fbIds[ad.node.group_commerce_item_title] = ad.node.id;
 				});
 				//console.log(this.fbIds);
+				this.adsListReceived = true;
 			}
 		});
 
@@ -44,9 +46,24 @@ module.exports = class ItemsSeller {
 
 		if(this.commit) {
 			await sleep.sleep(1);
-			await this.page.reload();
-			await sleep.sleep(5); // wait for the request response from the graphql api
+			this.adsListReceived = false;
+			while(true) { // wait for the request response from the graphql api
+				console.debug('Reloading the page...');
+				await this.page.reload();
+				if(await this.waitForValue(this.adsListReceived, true))
+					break;
+			}
 		}
+	}
+
+	async waitForValue(variable, expectedValue, delay = 500, iterations = 10) {
+		console.log('Waiting for value...');
+		for(let i = 0; i < iterations; ++i) {
+			if(variable == expectedValue)
+				return true;
+			await sleep.msleep(delay);
+		}
+		return false;
 	}
 
 	async manageItem(item, action) {
