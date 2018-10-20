@@ -18,9 +18,9 @@ module.exports  = {
   outputFile: 'assets/output.xml', // fichier généré en sortie
   dbFile: 'assets/db.json', // fichier contenant le datastore (base de données portable) du projet
   mysql: { // identifiants pour accéder à la base de données MySQL
-		host: 'localhost',
-		user: 'TO_COMPLETE',
-		password: 'TO_COMPLETE',
+    host: 'localhost',
+    user: 'TO_COMPLETE',
+    password: 'TO_COMPLETE',
     database: 'TO_COMPLETE',
     schemaFile: 'assets/db_schema.sql'
 	},
