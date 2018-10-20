@@ -23,7 +23,7 @@ module.exports  = {
     password: 'TO_COMPLETE',
     database: 'TO_COMPLETE',
     schemaFile: 'assets/db_schema.sql'
-	},
+  },
   login: 'TO_COMPLETE', // votre identifiant Facebook
   password: 'TO_COMPLETE', // votre mot de passe Facebook
   itemCategory: 'Property For Sale', // la catégorie des objets à mettre en vente (doit être en anglais)
@@ -61,5 +61,5 @@ Pour générer un fichier d'output listant les annonces postées :
 npm run generate-output
 ```
 ## Achitecture
-Le projet fait appel à [Puppeteer](https://github.com/GoogleChrome/puppeteer), un driver NodeJS pour Google Chrome headless et [LokiJS](http://lokijs.org), une base de données in-memory portable.  
+Le projet fait appel à [Puppeteer](https://github.com/GoogleChrome/puppeteer), un driver NodeJS pour Google Chrome headless.
 Au lancement du script, le fichier input, si présent, est lu et parsé, puis chaque item récupéré dans ce fichier est inséré dans la base de données (à condition qu'il n'y soit pas déjà, le lien de l'item joue le rôle de clé unique). Ensuite, les items de la base de données sont parcourus tour à tour afin d'être mis en vente. Une fois un item mis en vente, il est marqué comme traité et n'est plus jamais parcouru.
