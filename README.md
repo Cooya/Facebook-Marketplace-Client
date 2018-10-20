@@ -32,7 +32,7 @@ module.exports  = {
   intervalBetweenActions: [30, 300] // intervalle minimum et maximum en secondes entre chaque action (mise en vente, édition ou suppression)
 }
 ```
-Le projet nécessite une base de données MySQL, pour la remplir, il suffit de lancer la commande suivante :
+Le projet nécessite une base de données MySQL, pour créer les tables, il suffit de lancer la commande suivante :
 ```bash
 npm run set-up-database
 ```
