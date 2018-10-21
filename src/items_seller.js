@@ -32,7 +32,7 @@ module.exports = class ItemsSeller {
 					json = await response.json();
 				}
 				catch(e) {
-					if (e.msg == 'Protocol error (Network.getResponseBody): No resource with given identifier found') {
+					if (e.message == 'Protocol error (Network.getResponseBody): No resource with given identifier found') {
 						console.error('No resource with given identifier found.');
 						return;
 					}
@@ -59,7 +59,7 @@ module.exports = class ItemsSeller {
 			this.adsListReceived = false;
 			while(true) { // wait for the request response from the graphql api
 				console.debug('Reloading the page...');
-				await this.page.reload();
+				await pup.goTo(this.page, this.page.url());
 				if(await this.waitForValue(this.adsListReceived, true))
 					break;
 			}

@@ -6,6 +6,13 @@ const config = require('../config');
 const readFile = util.promisify(fs.readFile);
 
 (async () => {
+	const args = process.argv;
+	let dropDatabase = false;
+	for(let i = 1; i < args.length; ++i) {
+		if(args[i] == '--drop')
+			dropDatabase = true;
+	}
+
 	const credentials = {
 		host: config.mysql.host,
 		user: config.mysql.user,
@@ -13,15 +20,18 @@ const readFile = util.promisify(fs.readFile);
 		schemaFile: config.mysql.schemaFile,
 		multipleStatements: true
 	};
-	await setUpDatabase(credentials, config.mysql.database);
+	await setUpDatabase(credentials, config.mysql.database, dropDatabase);
 	console.log();
-	await setUpDatabase(credentials, 'Tests');
+	await setUpDatabase(credentials, 'Tests', dropDatabase);
 })();
 
-async function setUpDatabase(credentials, databaseName) {
+async function setUpDatabase(credentials, databaseName, drop = false) {
 	const connection = mysql.createConnection(credentials);
 
 	await connect(connection);
+	if(drop)
+		await dropDatabase(connection, databaseName);
+
 	const created = await createDatabase(connection, databaseName);
 	if(created) {
 		const schema = (await readFile(credentials.schemaFile)).toString();
@@ -54,14 +64,26 @@ function createDatabase(connection, name) {
 				else reject(err);
 			}
 			else {
-				console.log('Database created.');
+				console.log('Database "' + name + '" created.');
 				connection.query('USE `' + name + '`', (err) => {
 					if(err) reject(err);
 					else  {
-						console.log('Database selected.');
+						console.log('Database "' + name + '" selected.');
 						resolve(true);
 					}
 				});
+			}
+		});
+	});
+}
+
+function dropDatabase(connection, name) {
+	return new Promise((resolve, reject) => {
+		connection.query('DROP DATABASE `' + name + '`', (err) => {
+			if (err) reject(err);
+			else {
+				console.log('Database "' + name + '" dropped.');
+				resolve();
 			}
 		});
 	});
@@ -72,7 +94,7 @@ function importSchema(connection, schema) {
 		connection.query(schema, function (err) {
 			if (err) reject(err);
 			else {
-				console.log('Schema imported succesfully.');
+				console.log('Schema imported succesfully into the database.');
 				resolve();
 			}
 		});
