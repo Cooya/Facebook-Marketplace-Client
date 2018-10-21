@@ -40,7 +40,7 @@ module.exports = class ItemsManager extends DatabaseConnection {
 			const xml = await utils.readXMLFile(inputFile);
 
 			// process items from xml content
-			const processedItems = await processItems.call(this, xml.xml.annonce, this.requiredKeys);
+			const processedItems = await processItems.call(this, xml.xml.annonce);
 
 			// save processed items into database
 			let counter = 0;
@@ -76,30 +76,32 @@ module.exports = class ItemsManager extends DatabaseConnection {
 			throw Error('Invalid input file.');
 
 		// process items from xml content
-		const processedItems = await processItems.call(this, xml.xml.annonce, this.requiredKeys);
+		const processedItems = await processItems.call(this, xml.xml.annonce);
 
 		// check if items are for sale and not already up-to-date
-		return processedItems.reduce(async (acc, processedItem) => {
-			let itemForSale = await this.getItemForSale(processedItem.id);
+		const itemsToEdit = [];
+		await asyncForEach(processedItems, async (item) => {
+			let itemForSale = await this.getItemForSale(item.id);
 			if (!itemForSale)
-				return acc;
+				return;
 
-			if (areEqualItems(processedItem, itemForSale)) {
-				console.warn('Item "%s" is already up-to-date.', processedItem.id);
-				return acc;
+			if (areEqualItems(item, itemForSale)) {
+				console.warn('Item "%s" is already up-to-date.', item.id);
+				return;
 			}
 
 			// make the correspondance for the future update
-			processedItem.facebook_id = itemForSale.facebook_id;
-			processedItem.oldTitle = itemForSale.title; // if the title should be changed, we keep the old one to select the item among the items for sale
+			item.facebook_id = itemForSale.facebook_id;
+			item.oldTitle = itemForSale.title; // if the title should be changed, we keep the old one to select the item among the items for sale
 
-			acc.push(processedItem);
-			return acc;
-		}, []);
+			// add it to the list of items to edit
+			itemsToEdit.push(item);
+		});
+		return itemsToEdit;
 	}
 
 	async loadItemsToRemove(inputFile) {
-		// an input file is required
+		// an existing input file is required
 		if (!inputFile)
 			throw Error('An input file is required.');
 		if (!await utils.fileExists(inputFile))
@@ -112,22 +114,26 @@ module.exports = class ItemsManager extends DatabaseConnection {
 			throw Error('Invalid input file.');
 
 		// process items from xml content
-		return xml.xml.lien.reduce(async (acc, link) => {
+		const itemsToRemove = [];
+		await asyncForEach(xml.xml.lien, async (link) => {
+			// get the item id from the link
 			const matchResult = link.match(this.linkRegex);
 			if (!matchResult) {
 				console.error('Link "%s" is invalid.', link);
-				return acc;
+				return;
 			}
 
-			let itemForSale = await this.getItemForSale(matchResult[1]);
-			if (!itemForSale) {
+			// get the item for sale from the database
+			let item = await this.getItemForSale(matchResult[1]);
+			if (!item) {
 				console.warn('Item "%s" is not for sale.', matchResult[1]);
-				return acc;
+				return;
 			}
 
-			acc.push(itemForSale);
-			return acc;
-		}, []);
+			// add it to the list of items to remove
+			itemsToRemove.push(item);
+		});
+		return itemsToRemove;
 	}
 };
 

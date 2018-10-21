@@ -27,7 +27,17 @@ module.exports = class ItemsSeller {
 		this.page.on('response', async (response) => {
 			if(response.url() == 'https://www.facebook.com/api/graphql/' && response.request().postData().indexOf('MARKETPLACE_SELLING_ITEM_IMAGE_WIDTH') != -1) {
 				console.log('Processing ads list...');
-				let json = await response.json();
+				let json;
+				try {
+					json = await response.json();
+				}
+				catch(e) {
+					if (e.msg == 'Protocol error (Network.getResponseBody): No resource with given identifier found') {
+						console.error('No resource with given identifier found.');
+						return;
+					}
+					throw e;
+				}
 				json.data.viewer.selling_feed_one_page.edges.forEach((ad) => {
 					if(!this.fbIds[ad.node.group_commerce_item_title])
 						this.fbIds[ad.node.group_commerce_item_title] = ad.node.id;

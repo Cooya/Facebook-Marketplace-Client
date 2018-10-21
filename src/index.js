@@ -18,5 +18,7 @@ const Launcher = require('./launcher');
 	}
 
 	const launcher = new Launcher();
+	await launcher.itemsManager.connect();
 	await launcher.run(action);
+	await launcher.itemsManager.end();
 })();

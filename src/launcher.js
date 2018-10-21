@@ -33,9 +33,6 @@ module.exports = class Launcher {
 			throw Error('Invalid provided action.');
 		action = this.actions[action];
 
-		// connection to the database
-		await this.itemsManager.connect();
-
 		// load items to process
 		const items = await action.loadMethod(action.inputFile);
 		if(!items.length) {
