@@ -52,6 +52,15 @@ module.exports = class DatabaseConnection {
 		});
 	}
 
+	getDeletedItems() {
+		return new Promise((resolve, reject) => {
+			this.connection.query('SELECT * FROM ' + this.table + ' WHERE deleted_at IS NOT NULL', (err, result) => {
+				if (err) reject(err);
+				else resolve(convertPicturesStringToArray(result));
+			});
+		});
+	}
+
 	insertItem(item) {
 		return new Promise((resolve, reject) => {
 			const query = buildQuery(item);

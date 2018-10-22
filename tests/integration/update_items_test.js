@@ -2,14 +2,12 @@ const assert = require('assert');
 const mock = require('simple-mock').mock;
 
 const config = require('../../config');
-const ItemsSeller = require('../../src/items_seller');
 const setup = require('./setup');
-const utils = require('../../src/utils/utils');
 
 describe('items update : testing items to edit loading from file and database', () => {
 	let launcher;
 
-	before(async() => {
+	before(async () => {
 		launcher = await setup();
 	});
 
@@ -63,18 +61,13 @@ describe('items update : testing items to edit loading from file and database', 
 	describe('update items from xml file with loaded database', async () => {
 
 		before(async () => {
-			// load items to sell into database and put them a random facebook id
+			// load items to sell into database and set them a random facebook id
 			const items = await launcher.itemsManager.loadItemsToSell(config.insertInputFile);
 			for (let item of items) {
 				item.facebook_id = Math.random().toString(36).substring(7);
+				item.sent_at = new Date();
 				await launcher.itemsManager.updateItem(item);
 			}
-
-			// mock ItemsSeller methods
-			mock(ItemsSeller.prototype, 'open').callFn(() => Promise.resolve());
-			mock(ItemsSeller.prototype, 'close').callFn(() => Promise.resolve());
-			mock(ItemsSeller.prototype, 'manageItem').callFn(() => Promise.resolve(true));
-			mock(utils, 'randomSleep').callFn(() => Promise.resolve());
 		});
 
 		it('one item should be updated', async () => {
@@ -82,6 +75,8 @@ describe('items update : testing items to edit loading from file and database', 
 			assert.equal(item.title, 'MAISON [123]');
 			assert.equal(item.price, '300 000');
 			assert.equal(item.description, 'Jolie maison avec vue sur un parc où l\'on peut aperçevoir des écureuils roux.');
+			assert.equal(item.sent_at instanceof Date, true);
+			assert.equal(item.updated_at, null);
 
 			await launcher.run('edition');
 
@@ -89,6 +84,8 @@ describe('items update : testing items to edit loading from file and database', 
 			assert.equal(item.title, 'MAISONNETTE [123]');
 			assert.equal(item.price, '200 000');
 			assert.equal(item.description, 'Jolie maison avec vue sur un parc où l\'on peut aperçevoir des écureuils roux et gris.');
+			assert.equal(item.sent_at instanceof Date, true);
+			assert.equal(item.updated_at instanceof Date, true);
 		});
 	});
 });

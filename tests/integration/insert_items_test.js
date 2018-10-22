@@ -2,9 +2,7 @@ const assert = require('assert');
 const mock = require('simple-mock').mock;
 
 const config = require('../../config');
-const ItemsSeller = require('../../src/items_seller');
 const setup = require('./setup');
-const utils = require('../../src/utils/utils');
 
 describe('items insertion : testing items to insert loading from file and database', () => {
 	let launcher;
@@ -24,7 +22,7 @@ describe('items insertion : testing items to insert loading from file and databa
 			errors = mock(console, 'error');
 		});
 
-		it('should be 2 present items and 4 absent items', async () => {
+		it('should be 2 present items and 4 absent items, that means 4 errors must have been logged', async () => {
 			const items = await launcher.itemsManager.loadItemsToSell(config.insertInputFile);
 			assert.equal(items.length, 2);
 
@@ -33,9 +31,7 @@ describe('items insertion : testing items to insert loading from file and databa
 
 			assert.equal(items[1].url_site, 'https://www.consortium-immobilier.fr/annonce-456.html');
 			assert.equal(items[1].url_photo.length, 3);
-		});
 
-		it('should display 4 errors', async () => {
 			let missingPicturesCounter = 0;
 			let missingDescriptionCounter = 0;
 			let invalidLinkCounter = 0;
@@ -54,7 +50,7 @@ describe('items insertion : testing items to insert loading from file and databa
 		});
 	});
 
-	describe('load items from database and sell them', async () => {
+	describe('load items to sell from database', async () => {
 		it('should be 2 present items and 4 absent items', async () => {
 			const items = await launcher.itemsManager.loadItemsToSell();
 			assert.equal(items.length, 2);
@@ -68,14 +64,6 @@ describe('items insertion : testing items to insert loading from file and databa
 	});
 
 	describe('post items', async () => {
-
-		before(async () => {
-			mock(ItemsSeller.prototype, 'open').callFn(() => Promise.resolve());
-			mock(ItemsSeller.prototype, 'close').callFn(() => Promise.resolve());
-			mock(ItemsSeller.prototype, 'sellItem').callFn(() => Promise.resolve());
-			mock(utils, 'randomSleep').callFn(() => Promise.resolve());
-		});
-
 		it('should update facebook id of every item put into the marketplace', async () => {
 			const fbIds = {};
 			(await launcher.itemsManager.loadItemsToSell()).map((item) => {
@@ -87,8 +75,10 @@ describe('items insertion : testing items to insert loading from file and databa
 
 			const items = await launcher.itemsManager.getItems(true);
 			assert.equal(items.length, 2);
-			for(let item of items)
+			for(let item of items) {
 				assert.equal(typeof item.facebook_id, 'string');
+				assert.equal(item.sent_at instanceof Date, true);
+			}
 		});
 	});
 });

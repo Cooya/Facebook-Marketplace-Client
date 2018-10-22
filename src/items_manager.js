@@ -17,8 +17,8 @@ module.exports = class ItemsManager extends DatabaseConnection {
 					console.warn('Item "%s" not found into database.', id);
 					resolve(null);
 				}
-				else if (!item.facebook_id) {
-					console.warn('Item "%s" has not been processed yet.', id);
+				else if (!item.facebook_id || !item.sent_at) {
+					console.warn('Item "%s" is not for sale.', id);
 					resolve(null);
 				}
 				else if (item.deleted_at) {
@@ -125,10 +125,8 @@ module.exports = class ItemsManager extends DatabaseConnection {
 
 			// get the item for sale from the database
 			let item = await this.getItemForSale(matchResult[1]);
-			if (!item) {
-				console.warn('Item "%s" is not for sale.', matchResult[1]);
+			if (!item)
 				return;
-			}
 
 			// add it to the list of items to remove
 			itemsToRemove.push(item);
