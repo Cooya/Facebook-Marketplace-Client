@@ -20,6 +20,7 @@ module.exports = async () => {
 	// mock ItemsSeller methods
 	mock(ItemsSeller.prototype, 'open').callFn(() => Promise.resolve());
 	mock(ItemsSeller.prototype, 'close').callFn(() => Promise.resolve());
+	mock(ItemsSeller.prototype, 'sellItem').callFn(() => Promise.resolve());
 	mock(ItemsSeller.prototype, 'manageItem').callFn(() => Promise.resolve(true));
 	mock(utils, 'randomSleep').callFn(() => Promise.resolve());
 

@@ -64,4 +64,38 @@ describe('items deletion', () => {
 			assert.equal(deletedItems[0].deleted_at instanceof Date, true);
 		});
 	});
+
+	describe('insert item which has been deleted', async () => {
+		let warnings;
+
+		before(async () => {
+			warnings = mock(console, 'warn');
+		});
+
+		it('should reinsert the item', async () => {
+			const fbIds = {};
+			(await launcher.itemsManager.loadItemsToSell()).map((item) => {
+				fbIds[item.title] = Math.random().toString(36).substring(7);
+			});
+			mock(launcher.itemsSeller, 'fbIds', fbIds);
+
+			await launcher.run('posting');
+
+			const itemsForSale = await launcher.itemsManager.getItems(true);
+			assert.equal(itemsForSale.length, 2);
+			assert.equal(itemsForSale[0].id, '123');
+			assert.equal(itemsForSale[0].deleted_at, null);
+			assert.equal(itemsForSale[0].facebook_id, null);
+
+			const deletedItems = await launcher.itemsManager.getDeletedItems();
+			assert.equal(deletedItems.length, 0);
+
+			let removedItemFound;
+			for (let call of warnings.calls) {
+				if (call.arg == 'Item "123" removed from the marketplace.')
+					removedItemFound = true;
+			}
+			assert.equal(removedItemFound, true);
+		});
+	});
 });

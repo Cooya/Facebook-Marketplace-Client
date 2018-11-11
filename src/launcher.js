@@ -83,7 +83,7 @@ module.exports = class Launcher {
 			await this.itemsSeller.sellItem(item);
 			if(config.commit) {
 				if(!this.itemsSeller.fbIds[item.title])
-					throw Error(`The item "{item.id}" has not been found among items for sale.`);
+					throw Error('The item "' + item.id + '" has not been found among items for sale.');
 				else {
 					item.facebook_id = this.itemsSeller.fbIds[item.title];
 					item.sent_at = new Date();

@@ -106,7 +106,7 @@ describe('complete process test : insert, update and delete', () => {
 			await launcher.run('deletion');
 
 			const item = await launcher.itemsManager.getItem('12345');
-			assert.equal(item, null);
+			assert.equal(item.deleted_at instanceof Date, true);
 		});
 	});
 
@@ -117,7 +117,7 @@ describe('complete process test : insert, update and delete', () => {
 
 			let counter = 0;
 			for(let call of warnings.calls) {
-				if(call.arg == 'Item "%s" not found into database.')
+				if(call.arg == 'Item "%s" has been removed.')
 					counter++;
 			}
 

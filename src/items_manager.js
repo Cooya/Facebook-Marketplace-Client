@@ -22,7 +22,7 @@ module.exports = class ItemsManager extends DatabaseConnection {
 					resolve(null);
 				}
 				else if (item.deleted_at) {
-					console.warn('Item "%s" has been removed..', id);
+					console.warn('Item "%s" has been removed.', id);
 					resolve(null);
 				}
 				else
@@ -44,9 +44,21 @@ module.exports = class ItemsManager extends DatabaseConnection {
 
 			// save processed items into database
 			let counter = 0;
+			let itemInDatabase;
 			for (let item of processedItems) {
-				if (await this.getItem(item.id))
+				itemInDatabase = await this.getItem(item.id);
+				if (itemInDatabase) {
 					console.warn('Item "' + item.id + '" already exists in database.');
+					if(itemInDatabase.deleted_at) {
+						console.warn('Item "' + item.id + '" removed from the marketplace.');
+						item.sent_at = new Date();
+						item.updated_at = null;
+						item.deleted_at = null;
+						item.facebook_id = null;
+						await this.updateItem(item); // we reset the item
+						console.log('Item "' + item.id + '" already removed resetted.');
+					}
+				}
 				else {
 					await this.insertItem(item);
 					counter++;
