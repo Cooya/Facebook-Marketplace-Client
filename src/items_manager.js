@@ -48,8 +48,7 @@ module.exports = class ItemsManager extends DatabaseConnection {
 			for (let item of processedItems) {
 				itemInDatabase = await this.getItem(item.id);
 				if (itemInDatabase) {
-					console.warn('Item "' + item.id + '" already exists in database.');
-					if(itemInDatabase.deleted_at) {
+					if(itemInDatabase.deleted_at) { // if the item has already been remove
 						console.warn('Item "' + item.id + '" removed from the marketplace.');
 						item.sent_at = new Date();
 						item.updated_at = null;
@@ -58,11 +57,14 @@ module.exports = class ItemsManager extends DatabaseConnection {
 						await this.updateItem(item); // we reset the item
 						console.log('Item "' + item.id + '" already removed resetted.');
 					}
+					else {
+						console.warn('Item "' + item.id + '" already exists in database.');
+						continue;
+					}
 				}
-				else {
-					await this.insertItem(item);
-					counter++;
-				}
+
+				await this.insertItem(item);
+				counter++;
 			}
 
 			if (counter)

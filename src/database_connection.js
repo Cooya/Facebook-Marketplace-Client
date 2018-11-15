@@ -44,7 +44,7 @@ module.exports = class DatabaseConnection {
 
 	getItems(areForSale = false) {
 		return new Promise((resolve, reject) => {
-			const condition = areForSale ? 'sent_at IS NOT NULL AND deleted_at IS NULL' : 'sent_at IS NULL AND deleted_at IS NULL';
+			const condition = areForSale ? 'facebook_id IS NOT NULL AND deleted_at IS NULL' : 'facebook_id IS NULL AND deleted_at IS NULL';
 			this.connection.query('SELECT * FROM ' + this.table + ' WHERE ' + condition, (err, result) => {
 				if (err) reject(err);
 				else resolve(convertPicturesStringToArray(result));
