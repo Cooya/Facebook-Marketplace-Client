@@ -57,10 +57,9 @@ module.exports = class ItemsManager extends DatabaseConnection {
 						await this.updateItem(item); // we reset the item
 						console.log('Item "' + item.id + '" already removed resetted.');
 					}
-					else {
+					else
 						console.warn('Item "' + item.id + '" already exists in database.');
-						continue;
-					}
+					continue;
 				}
 
 				await this.insertItem(item);
@@ -72,8 +71,8 @@ module.exports = class ItemsManager extends DatabaseConnection {
 			await this.countItems();
 		}
 
-		// return the unprocessed items from the database
-		return this.getItems(false);
+		// return the items not yet for sale from the database
+		return this.getSellableItems();
 	}
 
 	async loadItemsToEdit(inputFile) {

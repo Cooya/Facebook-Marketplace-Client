@@ -42,10 +42,27 @@ module.exports = class DatabaseConnection {
 		});
 	}
 
-	getItems(areForSale = false) {
+	getItems() {
 		return new Promise((resolve, reject) => {
-			const condition = areForSale ? 'facebook_id IS NOT NULL AND deleted_at IS NULL' : 'facebook_id IS NULL AND deleted_at IS NULL';
-			this.connection.query('SELECT * FROM ' + this.table + ' WHERE ' + condition, (err, result) => {
+			this.connection.query('SELECT * FROM ' + this.table, (err, result) => {
+				if (err) reject(err);
+				else resolve(convertPicturesStringToArray(result));
+			});
+		});
+	}
+
+	getSellableItems() {
+		return new Promise((resolve, reject) => {
+			this.connection.query('SELECT * FROM ' + this.table + ' WHERE facebook_id IS NULL AND deleted_at IS NULL', (err, result) => {
+				if (err) reject(err);
+				else resolve(convertPicturesStringToArray(result));
+			});
+		});
+	}
+
+	getItemsForSale() {
+		return new Promise((resolve, reject) => {
+			this.connection.query('SELECT * FROM ' + this.table + ' WHERE facebook_id IS NOT NULL AND deleted_at IS NULL', (err, result) => {
 				if (err) reject(err);
 				else resolve(convertPicturesStringToArray(result));
 			});

@@ -73,7 +73,7 @@ describe('items insertion : testing items to insert loading from file and databa
 
 			await launcher.run('posting');
 
-			const items = await launcher.itemsManager.getItems(true);
+			const items = await launcher.itemsManager.getItemsForSale();
 			assert.equal(items.length, 2);
 			for(let item of items) {
 				assert.equal(typeof item.facebook_id, 'string');

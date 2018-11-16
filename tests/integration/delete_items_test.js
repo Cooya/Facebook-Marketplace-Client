@@ -55,7 +55,7 @@ describe('items deletion', () => {
 		it('should be no item for sale left into database', async () => {
 			await launcher.run('deletion');
 
-			const itemsForSale = await launcher.itemsManager.getItems(true);
+			const itemsForSale = await launcher.itemsManager.getItemsForSale();
 			assert.equal(itemsForSale.length, 0);
 
 			const deletedItems = await launcher.itemsManager.getDeletedItems();
@@ -74,18 +74,19 @@ describe('items deletion', () => {
 
 		it('should reinsert the item', async () => {
 			const fbIds = {};
-			(await launcher.itemsManager.loadItemsToSell()).map((item) => {
+			const itemsToSell = await launcher.itemsManager.loadItemsToSell(config.insertInputFile);
+			itemsToSell.map((item) => {
 				fbIds[item.title] = Math.random().toString(36).substring(7);
 			});
 			mock(launcher.itemsSeller, 'fbIds', fbIds);
 
 			await launcher.run('posting');
 
-			const itemsForSale = await launcher.itemsManager.getItems(true);
+			const itemsForSale = await launcher.itemsManager.getItemsForSale();
 			assert.equal(itemsForSale.length, 2);
 			assert.equal(itemsForSale[0].id, '123');
 			assert.equal(itemsForSale[0].deleted_at, null);
-			assert.equal(itemsForSale[0].facebook_id, null);
+			assert.notEqual(itemsForSale[0].facebook_id, null);
 
 			const deletedItems = await launcher.itemsManager.getDeletedItems();
 			assert.equal(deletedItems.length, 0);
