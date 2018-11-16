@@ -121,7 +121,7 @@ describe('complete process test : insert, update and delete', () => {
 					counter++;
 			}
 
-			assert.equal(counter, 1);
+			assert.equal(counter, 0);
 		});
 	});
 });

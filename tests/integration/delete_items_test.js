@@ -53,15 +53,19 @@ describe('items deletion', () => {
 
 	describe('run the deletion', async () => {
 		it('should be no item for sale left into database', async () => {
+			assert.equal((await launcher.itemsManager.getItems()).length, 2); // 2 items into the database at the beginning
+			assert.equal((await launcher.itemsManager.getItemsForSale()).length, 1); // and 1 is for sale
+
 			await launcher.run('deletion');
 
-			const itemsForSale = await launcher.itemsManager.getItemsForSale();
-			assert.equal(itemsForSale.length, 0);
+			assert.equal((await launcher.itemsManager.getItemsForSale()).length, 0); // all items has been marked as deleted
 
 			const deletedItems = await launcher.itemsManager.getDeletedItems();
-			assert.equal(deletedItems.length, 1);
+			assert.equal(deletedItems.length, 2);
 			assert.equal(deletedItems[0].id, '123');
 			assert.equal(deletedItems[0].deleted_at instanceof Date, true);
+			assert.equal(deletedItems[1].id, '456');
+			assert.equal(deletedItems[1].deleted_at instanceof Date, true);
 		});
 	});
 

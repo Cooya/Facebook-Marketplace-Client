@@ -10,27 +10,6 @@ module.exports = class ItemsManager extends DatabaseConnection {
 		this.linkRegex = /https:\/\/www\.consortium-immobilier\.fr\/annonce-([0-9]+)\.html/;
 	}
 
-	getItemForSale(id) {
-		return new Promise((resolve, reject) => {
-			this.getItem(id).then((item) => {
-				if (!item) {
-					console.warn('Item "%s" not found into database.', id);
-					resolve(null);
-				}
-				else if (!item.facebook_id || !item.sent_at) {
-					console.warn('Item "%s" is not for sale.', id);
-					resolve(null);
-				}
-				else if (item.deleted_at) {
-					console.warn('Item "%s" has been removed.', id);
-					resolve(null);
-				}
-				else
-					resolve(item);
-			}, reject);
-		});
-	}
-
 	async loadItemsToSell(inputFile) {
 		// if input file exists
 		if (inputFile && await utils.fileExists(inputFile)) {
@@ -94,18 +73,27 @@ module.exports = class ItemsManager extends DatabaseConnection {
 		// check if items are for sale and not already up-to-date
 		const itemsToEdit = [];
 		await asyncForEach(processedItems, async (item) => {
-			let itemForSale = await this.getItemForSale(item.id);
-			if (!itemForSale)
+			let itemInDatabase = await this.getItem(item.id);
+			if (!itemInDatabase) {
+				console.warn('Item "%s" not found into database.', item.id);
 				return;
-
-			if (areEqualItems(item, itemForSale)) {
+			}
+			if (!itemInDatabase.facebook_id || !itemInDatabase.sent_at) {
+				console.warn('Item "%s" is not for sale.', item.id);
+				return;
+			}
+			if (itemInDatabase.deleted_at) {
+				console.warn('Item "%s" has been removed.', item.id);
+				return;
+			}
+			if (areEqualItems(item, itemInDatabase)) {
 				console.warn('Item "%s" is already up-to-date.', item.id);
 				return;
 			}
 
 			// make the correspondance for the future update
-			item.facebook_id = itemForSale.facebook_id;
-			item.oldTitle = itemForSale.title; // if the title should be changed, we keep the old one to select the item among the items for sale
+			item.facebook_id = itemInDatabase.facebook_id;
+			item.oldTitle = itemInDatabase.title; // if the title should be changed, we keep the old one to select the item among the items for sale
 
 			// add it to the list of items to edit
 			itemsToEdit.push(item);
@@ -135,11 +123,24 @@ module.exports = class ItemsManager extends DatabaseConnection {
 				console.error('Link "%s" is invalid.', link);
 				return;
 			}
+			let id = matchResult[1];
 
 			// get the item for sale from the database
-			let item = await this.getItemForSale(matchResult[1]);
-			if (!item)
+			let item = await this.getItem(id);
+			if (!item) {
+				console.warn('Item "%s" not found into database.', id);
 				return;
+			}
+			if (!item.facebook_id || !item.sent_at) {
+				console.warn('Item "%s" is not for sale.', id);
+				item.deleted_at = new Date();
+				await this.updateItem(item);
+				return;
+			}
+			if (item.deleted_at) {
+				console.warn('Item "%s" has already been removed.', id);
+				return;
+			}
 
 			// add it to the list of items to remove
 			itemsToRemove.push(item);
