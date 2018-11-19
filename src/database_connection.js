@@ -4,14 +4,24 @@ module.exports = class DatabaseConnection {
 	constructor(config) {
 		this.table = 'facebook_ad';
 		this.config = config;
-		this.connection = mysql.createConnection(config);
+		this.connection = mysql.createConnection(this.config);
 	}
 
 	async connect() {
 		if (this.connection.state == 'authenticated')
 			return true;
 
+		console.log('Connection to the database...');
 		return new Promise((resolve, reject) => {
+			this.connection.on('error', (err) => {
+				if(err.code === 'PROTOCOL_CONNECTION_LOST') {
+					this.connection = mysql.createConnection(this.config);
+					this.connect();
+				}
+				else
+					throw err;
+			});
+
 			this.connection.connect((err) => {
 				if (err) reject(err);
 				else {
@@ -90,15 +100,13 @@ function sendQuery(query, values) {
 	return new Promise((resolve, reject) => {
 		this.connection.query(query, values, (err, result) => {
 			if (err) {
-				if (err.code == 'PROTOCOL_CONNECTION_LOST') {
-					console.debug('Reconnection to the database...');
-					this.connection = new mysql.createConnection(this.config);
+				if (err.code == 'PROTOCOL_CONNECTION_LOST') { // actually it should never happen
+					console.log('Reconnection to the database...');
+					this.connection = mysql.createConnection(this.config);
 					this.connect().then(sendQuery.call(this, query, values).then(resolve, reject), reject);
 				}
-				else {
-					console.debug('Error code : ' + err.code);
+				else
 					reject(err);
-				}
 			}
 			else resolve(result);
 		});
