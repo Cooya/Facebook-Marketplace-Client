@@ -95,8 +95,10 @@ function sendQuery(query, values) {
 					this.connection = new mysql.createConnection(this.config);
 					this.connect().then(sendQuery.call(this, query, values).then(resolve, reject), reject);
 				}
-				else
+				else {
+					console.debug('Error code : ' + err.code);
 					reject(err);
+				}
 			}
 			else resolve(result);
 		});
