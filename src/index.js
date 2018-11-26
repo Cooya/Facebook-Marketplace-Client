@@ -17,8 +17,14 @@ const Launcher = require('./launcher');
 		}
 	}
 
-	const launcher = new Launcher();
-	await launcher.itemsManager.connect();
-	await launcher.run(action);
-	await launcher.itemsManager.end();
+	try {
+		const launcher = new Launcher();
+		await launcher.itemsManager.connect();
+		await launcher.run(action);
+		await launcher.itemsManager.end();
+	}
+	catch(e) {
+		console.error(e);
+		process.exit(0); // 0 allows to avoid NPM verbose output
+	}
 })();

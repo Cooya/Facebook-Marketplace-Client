@@ -27,7 +27,7 @@ CREATE TABLE `facebook_ad` (
   `sent_at` timestamp(6) NULL DEFAULT NULL,
   `updated_at` timestamp(6) NULL DEFAULT NULL,
   `deleted_at` timestamp(6) NULL DEFAULT NULL,
-  `title` varchar(45) NOT NULL,
+  `title` varchar(100) NOT NULL,
   `url_site` varchar(100) NOT NULL,
   `type` varchar(45) NOT NULL,
   `price` varchar(45) DEFAULT NULL,

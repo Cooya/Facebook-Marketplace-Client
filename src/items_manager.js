@@ -165,7 +165,7 @@ async function processItems(items) { // check if items read from the input file 
 		processedItem.type = this.itemCategory;
 		processedItem.facebook_id = null;
 
-		if (item.photos) {
+		if (item.photos && item.photos[0].photo) {
 			const pictures = [];
 			for (let photo of item.photos[0].photo) {
 				let picturePath = await utils.downloadFile(photo, this.picturesFolder);
