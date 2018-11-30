@@ -17,6 +17,8 @@ module.exports = class ItemsSeller {
 
 		this.browser = null;
 		this.page = null;
+
+		this.fillSellForm = fillSellForm; // need to be public for being mocked in unit testing
 	}
 
 	async open() {
@@ -51,8 +53,7 @@ module.exports = class ItemsSeller {
 	}
 
 	async sellItem(item) {
-		await openSellFormModal.call(this);
-		await fillSellForm.call(this, item);
+		await fillSellFormWrapped.call(this, 'sell', item);
 
 		if(this.commit) {
 			await sleep.sleep(1);
@@ -138,10 +139,36 @@ async function logIn() {
 	console.log('Logged in.');
 }
 
-async function openSellFormModal() {
-	await this.page.click('div[role=navigation]:nth-child(1) button');
+async function openFormModal(formType) {
+	const buttonSelector = formType == 'sell' ? 'div[role=navigation]:nth-child(1) button' : 'div.uiLayer:not(.hidden_elem) li[role="presentation"]:nth-child(2) > a[role="menuitem"]';
+	await this.page.click(buttonSelector);
 	await this.page.waitForSelector('div[role=dialog] input');
 	await sleep.sleep(1);
+}
+
+async function fillSellFormWrapped(formType, item) {
+	for(let i = 0; i < 3; ++i) {
+		try {
+			await openFormModal.call(this, formType);
+			await this.fillSellForm(item);
+			console.log('Form submitted sucessfully.');
+			return;
+		}
+		
+		catch(e) {
+			console.error(e);
+			await this.page.click('button.layerCancel');
+			try {
+				await this.page.waitForSelector('div.uiOverlayFooter button', {timeout: 5000});
+				await sleep.msleep(500);
+				await this.page.click('div.uiOverlayFooter button:first-child');
+			}
+			catch(e) {}
+			await this.page.waitForSelector('button.layerCancel', {hidden: true});
+			await sleep.sleep(1);
+		}
+	}
+	throw new Error('It seems there is a problem when submitting the form.');
 }
 
 async function fillSellForm(item) {
@@ -245,11 +272,7 @@ async function fillSellForm(item) {
 }
 
 async function editItem(item) {
-	await this.page.click('div.uiLayer:not(.hidden_elem) li[role="presentation"]:nth-child(2) > a[role="menuitem"]'); // the ".hidden_elem" is important
-	await this.page.waitForSelector('div[role=dialog] input');
-	await sleep.sleep(1);
-	await fillSellForm.call(this, item);
-	console.log('Item updated sucessfully.');
+	await fillSellFormWrapped.call(this, 'edit', item);
 }
 
 async function removeItem() {

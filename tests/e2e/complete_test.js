@@ -46,6 +46,18 @@ describe('complete process test : insert, update and delete', () => {
 					return launcher.itemsSeller.sellItem(item);
 				}
 			});
+
+			let error2AlreadyThrown = false;
+			mock(launcher.itemsSeller, 'fillSellForm').callFn((item) => {
+				if(!error2AlreadyThrown) {
+					error2AlreadyThrown = true;
+					throw Error('Form error !');
+				}
+				else {
+					restore(launcher.itemsSeller, 'fillSellForm');
+					return launcher.itemsSeller.fillSellForm(item);
+				}
+			});
 		});
 
 		it('should restart the posting process when the error happens', async function() {
