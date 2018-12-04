@@ -203,8 +203,9 @@ async function fillSellForm(item) {
 	await sleep.msleep(500);
 	await this.page.type('input[placeholder="Add Location"]', item.city);
 	await sleep.msleep(2000);
-	await this.page.keyboard.press('ArrowDown');
-	await sleep.msleep(500);
+	// Facebook now preselects the first entry
+	// await this.page.keyboard.press('ArrowDown');
+	// await sleep.msleep(500);
 	await this.page.keyboard.press('Enter');
 	await sleep.msleep(500);
 
