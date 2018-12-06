@@ -1,6 +1,7 @@
 const sleep = require('sleep');
 
 const pup = require('./utils/pup_utils');
+const utils = require('./utils/utils');
 
 const marketplaceUrl = 'https://www.facebook.com/marketplace/selling';
 
@@ -18,7 +19,22 @@ module.exports = class ItemsSeller {
 		this.browser = null;
 		this.page = null;
 
-		this.fillSellForm = fillSellForm; // need to be public for being mocked in unit testing
+		this.fillSellForm = fillSellForm; // private method which needs to be public to be mocked in unit testing
+
+		const wrap = async (method, ...params) => {
+			try {
+				return method.call(this, ...params);
+			}
+			catch(e) {
+				await this.page.screenshot({path: 'error.png', fullPage: true});
+				throw e;
+			}
+		};
+
+		this.open = wrap.bind(this, this.open);
+		this.sellItem = wrap.bind(this, this.sellItem);
+		this.manageItem = wrap.bind(this, this.manageItem);
+		this.close = wrap.bind(this, this.close);
 	}
 
 	async open() {
@@ -61,20 +77,10 @@ module.exports = class ItemsSeller {
 			while(true) { // wait for the request response from the graphql api
 				console.debug('Reloading the page...');
 				await pup.goTo(this.page, this.page.url());
-				if(await this.waitForValue(this.adsListReceived, true))
+				if(await utils.waitForValue(this.adsListReceived, true))
 					break;
 			}
 		}
-	}
-
-	async waitForValue(variable, expectedValue, delay = 500, iterations = 10) {
-		console.log('Waiting for value...');
-		for(let i = 0; i < iterations; ++i) {
-			if(variable == expectedValue)
-				return true;
-			await sleep.msleep(delay);
-		}
-		return false;
 	}
 
 	async manageItem(item, action) {
@@ -243,11 +249,8 @@ async function fillSellForm(item) {
 			else throw e;
 		}
 	}
-	if(await this.page.$('div[aria-haspopup="true"] p')) {
-		console.error('One or several pictures are invalid for the item "' + item.title + '".');
-		await sleep.sleep(1);
-		return;
-	}
+	if(await this.page.$('div[aria-haspopup="true"] p'))
+		throw new Error('One or several pictures are invalid for the item "' + item.title + '".');
 	console.log('Pictures uploaded successfully.');
 	await sleep.sleep(1);
 	

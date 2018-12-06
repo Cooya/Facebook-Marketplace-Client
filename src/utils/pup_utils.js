@@ -18,18 +18,18 @@ const browserOptions = {
 };
 
 module.exports = {
-	runBrowser: runBrowser,
-	createPage: createPage,
-	goTo: goTo,
-	scrollPage: scrollPage,
-	infiniteScroll: infiniteScroll,
-	click: click,
-	reloadPage: reloadPage,
-	loadCookies: loadCookies,
-	saveCookies: saveCookies,
-	deleteCookiesFile: deleteCookiesFile,
-	value: value,
-	attribute: attribute
+	runBrowser,
+	createPage,
+	goTo,
+	scrollPage,
+	infiniteScroll,
+	click,
+	reloadPage,
+	loadCookies,
+	saveCookies,
+	deleteCookiesFile,
+	value,
+	attribute
 };
 
 async function runBrowser(options) {

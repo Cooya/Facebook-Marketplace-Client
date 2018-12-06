@@ -32,6 +32,7 @@ async function downloadFile(url, destFolder, fileName = null, forceDownload = fa
 	if (!forceDownload && await fileExists(filePath)) // do not download if the file already exists
 		return Promise.resolve(filePath);
 
+	console.debug('Downloading picture...');
 	const file = fs.createWriteStream(filePath);
 
 	return new Promise((resolve, reject) => {
@@ -62,14 +63,25 @@ async function randomSleep(interval = 2) {
 	await sleep.sleep(seconds);
 }
 
+async function waitForValue(variable, expectedValue, delay = 500, iterations = 10) {
+	console.log('Waiting for value...');
+	for(let i = 0; i < iterations; ++i) {
+		if(variable == expectedValue)
+			return true;
+		await sleep.msleep(delay);
+	}
+	return false;
+}
+
 module.exports = {
-	readXMLFile: readXMLFile,
-	writeXMLFile: writeXMLFile,
-	downloadFile: downloadFile,
-	fileExists: fileExists,
+	readXMLFile,
+	writeXMLFile,
+	downloadFile,
+	fileExists,
 	deleteFile: util.promisify(fs.unlink),
-	getRandomNumber: getRandomNumber,
-	randomSleep: randomSleep
+	getRandomNumber,
+	randomSleep,
+	waitForValue
 };
 
 Array.prototype.equalsTo = function(arr) {
