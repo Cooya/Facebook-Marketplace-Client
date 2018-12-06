@@ -167,10 +167,17 @@ async function processItems(items) { // check if items read from the input file 
 
 		if (item.photos && item.photos[0].photo) {
 			const pictures = [];
+			let picturePath;
+			let fileSize;
+			let forceDownload;
 			for (let photo of item.photos[0].photo) {
-				let picturePath = await utils.downloadFile(photo, this.picturesFolder);
-				if (picturePath)
-					pictures.push(picturePath);
+				forceDownload = false;
+				do {
+					picturePath = await utils.downloadFile(photo, this.picturesFolder, null, forceDownload);
+					fileSize = await utils.fileSize(picturePath);
+					forceDownload = true;
+				} while(fileSize == 0); // sometimes the file is empty
+				pictures.push(picturePath);
 			}
 			if (!pictures.length) {
 				console.error('Unexpected issue when reading pictures from item "' + processedItem.url_site + '".');

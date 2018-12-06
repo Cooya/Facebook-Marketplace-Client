@@ -8,6 +8,7 @@ const xml2js = require('xml2js');
 
 const readFile = util.promisify(fs.readFile);
 const writeFile = util.promisify(fs.writeFile);
+const fileStat = util.promisify(fs.stat);
 const parseXML = util.promisify(xml2js.parseString);
 const mkdir = util.promisify(mkdirp);
 const builder = new xml2js.Builder({ rootName: 'xml' });
@@ -53,6 +54,10 @@ async function fileExists(filePath) {
 	}
 }
 
+async function fileSize(filePath) {
+	return (await fileStat(filePath)).size;
+}
+
 function getRandomNumber(min, max) {
 	return Number.parseInt(Math.random() * (max - min) + min);
 }
@@ -78,6 +83,7 @@ module.exports = {
 	writeXMLFile,
 	downloadFile,
 	fileExists,
+	fileSize,
 	deleteFile: util.promisify(fs.unlink),
 	getRandomNumber,
 	randomSleep,

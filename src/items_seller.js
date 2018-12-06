@@ -26,6 +26,7 @@ module.exports = class ItemsSeller {
 				return method.call(this, ...params);
 			}
 			catch(e) {
+				console.debug('Taking screenshot...');
 				await this.page.screenshot({path: 'error.png', fullPage: true});
 				throw e;
 			}
