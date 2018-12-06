@@ -23,7 +23,7 @@ module.exports = class ItemsSeller {
 
 		const wrap = async (method, ...params) => {
 			try {
-				return method.call(this, ...params);
+				return await method.call(this, ...params);
 			}
 			catch(e) {
 				console.debug('Taking screenshot...');
