@@ -164,15 +164,15 @@ async function fillSellFormWrapped(formType, item) {
 		
 		catch(e) {
 			console.error(e);
-			await this.page.click('button.layerCancel');
-			try {
-				await this.page.waitForSelector('div.uiOverlayFooter button', {timeout: 5000});
-				await sleep.msleep(500);
-				await this.page.click('div.uiOverlayFooter button:first-child');
-			}
-			catch(e) {}
-			await this.page.waitForSelector('button.layerCancel', {hidden: true});
+			console.log('Trying again to fill out the form...');
+			await this.page.click('button.layerCancel'); // close the modal
 			await sleep.sleep(1);
+			const confirmationBox = await this.page.$('div.uiOverlayFooter button');
+			if(confirmationBox) {
+				await confirmationBox.click(); // confirm the closing
+				await this.page.waitForSelector('div.uiOverlayFooter button', {hidden: true});
+			}
+			await this.page.waitForSelector('button.layerCancel', {hidden: true}); // wait for the modal to be closed
 		}
 	}
 	throw new Error('It seems there is a problem when submitting the form.');
@@ -181,7 +181,7 @@ async function fillSellFormWrapped(formType, item) {
 async function fillSellForm(item) {
 
 	// description
-	const previousDescriptionValue = await pup.attribute(this.page, 'div[aria-multiline="true"]', 'textContent');
+	const previousDescriptionValue = await pup.attribute(this.page, 'div[aria-multline="true"]', 'textContent');
 	if(previousDescriptionValue) { // empty description if needed
 		await this.page.type('div[aria-multiline="true"]', '');
 		await this.page.keyboard.down('Control');
