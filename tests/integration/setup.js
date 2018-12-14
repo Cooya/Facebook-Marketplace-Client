@@ -8,7 +8,7 @@ const utils = require('../../src/utils/utils');
 process.env.NODE_ENV = 'test';
 
 module.exports = async () => {
-	mock(utils, 'downloadFile').callFn((url) => Promise.resolve(url));
+	mock(utils, 'downloadFile').callFn(() => Promise.resolve('tests/integration/pic.jpg'));
 	const mysql = config.mysql;
 	mysql.database = 'Tests';
 	mock(config, 'mysql', mysql);

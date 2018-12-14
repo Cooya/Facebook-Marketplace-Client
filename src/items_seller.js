@@ -181,7 +181,7 @@ async function fillSellFormWrapped(formType, item) {
 async function fillSellForm(item) {
 
 	// description
-	const previousDescriptionValue = await pup.attribute(this.page, 'div[aria-multline="true"]', 'textContent');
+	const previousDescriptionValue = await pup.attribute(this.page, 'div[aria-multiline="true"]', 'textContent');
 	if(previousDescriptionValue) { // empty description if needed
 		await this.page.type('div[aria-multiline="true"]', '');
 		await this.page.keyboard.down('Control');
