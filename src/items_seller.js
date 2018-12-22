@@ -194,7 +194,7 @@ async function fillSellForm(item) {
 	await sleep.msleep(500);
 	
 	// title
-	await this.page.click('input[placeholder="What are you selling?"]'); // select all the title text
+	await this.page.click('input[placeholder="What are you selling?"]', {clickCount: 3}); // select all the title text
 	await sleep.msleep(500);
 	await this.page.type('input[placeholder="What are you selling?"]', item.title);
 	await sleep.msleep(500);
