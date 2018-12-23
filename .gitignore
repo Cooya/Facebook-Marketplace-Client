@@ -7,6 +7,7 @@ assets/updateInput.xml
 assets/deleteInput.xml
 assets/output.xml
 assets/db.json
+assets/appstate.json
 config.js
 npm-debug.log
 error.png

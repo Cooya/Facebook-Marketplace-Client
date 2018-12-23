@@ -4,6 +4,7 @@
   "description": "",
   "main": "src/index.js",
   "dependencies": {
+    "facebook-chat-api": "^1.6.0",
     "lokijs": "^1.5.5",
     "mkdirp": "^0.5.1",
     "mysql": "^2.16.0",
@@ -31,6 +32,7 @@
     "generate-output": "node src/output_generator.js",
     "set-up-database": "node src/set_up_database.js",
     "reset": "rm -f config.js && rm -f assets/cookies.json && rm -f assets/db.json && rm -rf assets/pictures && rm -rf node_modules",
+    "chat-server": "node src/chat_server.js",
     "lint": "eslint ."
   },
   "author": "Coya",
