@@ -61,7 +61,7 @@ module.exports = class ItemsSeller {
 					if(!this.fbIds[ad.node.group_commerce_item_title])
 						this.fbIds[ad.node.group_commerce_item_title] = ad.node.id;
 				});
-				//console.log(this.fbIds);
+				//console.debug(this.fbIds);
 				this.adsListReceived = true;
 			}
 		});
@@ -76,10 +76,12 @@ module.exports = class ItemsSeller {
 			await sleep.sleep(1);
 			this.adsListReceived = false;
 			while(true) { // wait for the request response from the graphql api
-				console.debug('Reloading the page...');
+				console.log('Reloading the page...');
 				await pup.goTo(this.page, this.page.url());
+				console.log('Waiting until the item has been found into the selling list.');
 				if(await utils.waitForValue(this.adsListReceived, true))
 					break;
+				console.log('Item found.');
 			}
 		}
 	}

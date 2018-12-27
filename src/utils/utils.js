@@ -33,7 +33,7 @@ async function downloadFile(url, destFolder, fileName = null, forceDownload = fa
 	if (!forceDownload && await fileExists(filePath)) // do not download if the file already exists
 		return Promise.resolve(filePath);
 
-	console.debug('Downloading picture...');
+	console.log('Downloading picture...');
 	const file = fs.createWriteStream(filePath);
 
 	return new Promise((resolve, reject) => {
@@ -69,7 +69,7 @@ async function randomSleep(interval = 2) {
 }
 
 async function waitForValue(variable, expectedValue, delay = 500, iterations = 10) {
-	console.log('Waiting for value...');
+	//console.debug('Waiting for value...');
 	for(let i = 0; i < iterations; ++i) {
 		if(variable == expectedValue)
 			return true;

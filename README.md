@@ -17,6 +17,7 @@ module.exports  = {
   deleteInputFile: 'assets/deleteInput.xml', // fichier d'entrée contenant les annonces à retirer
   outputFile: 'assets/output.xml', // fichier généré en sortie
   dbFile: 'assets/db.json', // fichier contenant le datastore (base de données portable) du projet
+  appStateFile: 'assets/appstate.json', // fichier contenant les cookies permettant une connexion automatique à l'API Facebook chat
   mysql: { // identifiants pour accéder à la base de données MySQL
     host: 'localhost',
     user: 'TO_COMPLETE',
