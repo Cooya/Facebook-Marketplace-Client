@@ -6,7 +6,6 @@ const utils = require('./utils/utils');
 const marketplaceUrl = 'https://www.facebook.com/marketplace/selling';
 
 module.exports = class ItemsSeller {
-
 	constructor(config) {
 		this.login = config.login;
 		this.password = config.password;
@@ -24,10 +23,9 @@ module.exports = class ItemsSeller {
 		const wrap = async (method, ...params) => {
 			try {
 				return await method.call(this, ...params);
-			}
-			catch(e) {
+			} catch (e) {
 				console.debug('Taking screenshot...');
-				await this.page.screenshot({path: 'error.png', fullPage: true});
+				await this.page.screenshot({ path: 'error.png', fullPage: true });
 				throw e;
 			}
 		};
@@ -40,25 +38,33 @@ module.exports = class ItemsSeller {
 
 	async open() {
 		// open browser and load cookies
-		this.browser = await pup.runBrowser({headless: this.headless});
+		this.browser = await pup.runBrowser({ headless: this.headless });
 		this.page = await pup.createPage(this.browser, this.cookiesFile);
 
-		this.page.on('response', async (response) => {
-			if(response.url() == 'https://www.facebook.com/api/graphql/' && response.request().postData().indexOf('MARKETPLACE_SELLING_ITEM_IMAGE_WIDTH') != -1) {
+		this.page.on('response', async response => {
+			if (
+				response.url() == 'https://www.facebook.com/api/graphql/' &&
+				response
+					.request()
+					.postData()
+					.indexOf('MARKETPLACE_SELLING_ITEM_IMAGE_WIDTH') != -1
+			) {
 				console.log('Processing ads list...');
 				let json;
 				try {
 					json = await response.json();
-				}
-				catch(e) {
-					if (e.message == 'Protocol error (Network.getResponseBody): No resource with given identifier found') {
+				} catch (e) {
+					if (
+						e.message ==
+						'Protocol error (Network.getResponseBody): No resource with given identifier found'
+					) {
 						console.error('No resource with given identifier found.');
 						return;
 					}
 					throw e;
 				}
-				json.data.viewer.selling_feed_one_page.edges.forEach((ad) => {
-					if(!this.fbIds[ad.node.group_commerce_item_title])
+				json.data.viewer.selling_feed_one_page.edges.forEach(ad => {
+					if (!this.fbIds[ad.node.group_commerce_item_title])
 						this.fbIds[ad.node.group_commerce_item_title] = ad.node.id;
 				});
 				//console.debug(this.fbIds);
@@ -72,15 +78,15 @@ module.exports = class ItemsSeller {
 	async sellItem(item) {
 		await fillSellFormWrapped.call(this, 'sell', item);
 
-		if(this.commit) {
+		if (this.commit) {
 			await sleep.sleep(1);
 			this.adsListReceived = false;
-			while(true) { // wait for the request response from the graphql api
+			while (true) {
+				// wait for the request response from the graphql api
 				console.log('Reloading the page...');
 				await pup.goTo(this.page, this.page.url());
 				console.log('Waiting until the item has been found into the selling list.');
-				if(await utils.waitForValue(this.adsListReceived, true))
-					break;
+				if (await utils.waitForValue(this.adsListReceived, true)) break;
 				console.log('Item found.');
 			}
 		}
@@ -88,31 +94,32 @@ module.exports = class ItemsSeller {
 
 	async manageItem(item, action) {
 		const actions = {
-			'edit': editItem,
-			'remove': removeItem
+			edit: editItem,
+			remove: removeItem
 		};
-	
-		const itemContainers = await this.page.$$('div.clearfix [direction="left"]');
-		let found = false;
-		let actionSelectorButton;
-		for(let itemContainer of itemContainers) {
-			if(await itemContainer.$('span[title="' + (item.oldTitle || item.title) + '"')) {
-				actionSelectorButton = await itemContainer.$('a > span > i[alt=""]');
-				await actionSelectorButton.click();
-				await this.page.waitForSelector('li[role="presentation"] > a[role="menuitem"]');
-				await sleep.msleep(500);
-				await actions[action].call(this, item);
-				found = true;
-				break;
-			}
-		}
 
-		if(!found) {
-			console.error('Cannot update item "%s", not found in selling.', item.id);
-			sleep.sleep(3);
+		const found = await pup.infiniteScroll(this.page, async () => {
+			let actionSelectorButton;
+			for (let itemContainer of await this.page.$$('div.clearfix [direction="left"]')) {
+				if (await itemContainer.$('span[title="' + (item.oldTitle || item.title) + '"')) {
+					console.debug('Ad found into the marketplace.');
+					actionSelectorButton = await itemContainer.$('a > span > i[alt=""]');
+					await actionSelectorButton.click();
+					await this.page.waitForSelector('li[role="presentation"] > a[role="menuitem"]');
+					await sleep.msleep(500);
+					await actions[action].call(this, item);
+					return true;
+				}
+			}
+			console.debug('Ad not found yet into the marketplace.');
 			return false;
+		});
+
+		if (!found) {
+			console.error('Cannot update or delete item "%s", not found in selling.', item.id);
+			sleep.sleep(3);
 		}
-		return true;
+		return found;
 	}
 
 	async close() {
@@ -124,7 +131,8 @@ module.exports = class ItemsSeller {
 async function goToMarketPlace() {
 	await pup.goTo(this.page, marketplaceUrl);
 	const loginForm = await this.page.$('#login_form');
-	if(loginForm) { // log in if needed
+	if (loginForm) {
+		// log in if needed
 		await logIn.call(this);
 		await sleep.sleep(1);
 		await pup.saveCookies(this.page, this.cookiesFile);
@@ -134,7 +142,7 @@ async function goToMarketPlace() {
 async function logIn() {
 	console.log('Logging in...');
 	const loginValue = await pup.value(this.page, '#email');
-	if(!loginValue) {
+	if (!loginValue) {
 		await this.page.type('#email', this.login);
 		await sleep.msleep(500);
 	}
@@ -143,48 +151,52 @@ async function logIn() {
 	await this.page.click('#loginbutton');
 	await this.page.waitForNavigation();
 	const loginButton = await this.page.$('#loginbutton');
-	if(loginButton)
-		throw Error('The log in has failed.');
+	if (loginButton) throw Error('The log in has failed.');
 	console.log('Logged in.');
 }
 
 async function openFormModal(formType) {
-	const buttonSelector = formType == 'sell' ? 'div[role=navigation]:nth-child(1) button' : 'div.uiLayer:not(.hidden_elem) li[role="presentation"]:nth-child(2) > a[role="menuitem"]';
+	const buttonSelector =
+		formType == 'sell'
+			? 'div[role=navigation]:nth-child(1) button'
+			: 'div.uiLayer:not(.hidden_elem) li[role="presentation"]:nth-child(2) > a[role="menuitem"]';
 	await this.page.click(buttonSelector);
 	await this.page.waitForSelector('div[role=dialog] input');
 	await sleep.sleep(1);
 }
 
 async function fillSellFormWrapped(formType, item) {
-	for(let i = 0; i < 3; ++i) {
+	for (let i = 0; i < 3; ++i) {
 		try {
 			await openFormModal.call(this, formType);
 			await this.fillSellForm(item);
 			console.log('Form submitted sucessfully.');
 			return;
-		}
-		
-		catch(e) {
+		} catch (e) {
 			console.error(e);
 			console.log('Trying again to fill out the form...');
 			await this.page.click('button.layerCancel'); // close the modal
 			await sleep.sleep(1);
 			const confirmationBox = await this.page.$('div.uiOverlayFooter button');
-			if(confirmationBox) {
+			if (confirmationBox) {
 				await confirmationBox.click(); // confirm the closing
-				await this.page.waitForSelector('div.uiOverlayFooter button', {hidden: true});
+				await this.page.waitForSelector('div.uiOverlayFooter button', { hidden: true });
 			}
-			await this.page.waitForSelector('button.layerCancel', {hidden: true}); // wait for the modal to be closed
+			await this.page.waitForSelector('button.layerCancel', { hidden: true }); // wait for the modal to be closed
 		}
 	}
 	throw new Error('It seems there is a problem when submitting the form.');
 }
 
 async function fillSellForm(item) {
-
 	// description
-	const previousDescriptionValue = await pup.attribute(this.page, 'div[aria-multiline="true"]', 'textContent');
-	if(previousDescriptionValue) { // empty description if needed
+	const previousDescriptionValue = await pup.attribute(
+		this.page,
+		'div[aria-multiline="true"]',
+		'textContent'
+	);
+	if (previousDescriptionValue) {
+		// empty description if needed
 		await this.page.type('div[aria-multiline="true"]', '');
 		await this.page.keyboard.down('Control');
 		await this.page.keyboard.down('KeyA');
@@ -194,15 +206,15 @@ async function fillSellForm(item) {
 	}
 	await this.page.type('div[aria-multiline="true"]', item.description);
 	await sleep.msleep(500);
-	
+
 	// title
-	await this.page.click('input[placeholder="What are you selling?"]', {clickCount: 3}); // select all the title text
+	await this.page.click('input[placeholder="What are you selling?"]', { clickCount: 3 }); // select all the title text
 	await sleep.msleep(500);
 	await this.page.type('input[placeholder="What are you selling?"]', item.title);
 	await sleep.msleep(500);
 
 	// price
-	await this.page.click('input[placeholder="Price"]', {clickCount: 3}); // select all the price text
+	await this.page.click('input[placeholder="Price"]', { clickCount: 3 }); // select all the price text
 	await sleep.msleep(500);
 	await this.page.type('input[placeholder="Price"]', item.price);
 	await sleep.msleep(500);
@@ -230,50 +242,58 @@ async function fillSellForm(item) {
 
 	// pictures
 	const cleanPictures = async () => {
-		const selector = 'button[title="Remove photo"], div.fbScrollableAreaContent button[title="Remove"]';
-		while(await this.page.$(selector)) {
+		const selector =
+			'button[title="Remove photo"], div.fbScrollableAreaContent button[title="Remove"]';
+		while (await this.page.$(selector)) {
 			await this.page.click(selector);
 			await sleep.msleep(500);
 		}
 	};
 	await cleanPictures(); // remove previous pictures if needed
 
-	for(let i = 0; i < 3; ++i) {
-		await (await this.page.$('input[title="Choose a file to upload"]')).uploadFile(...item.url_photo);
+	for (let i = 0; i < 3; ++i) {
+		await (await this.page.$('input[title="Choose a file to upload"]')).uploadFile(
+			...item.url_photo
+		);
 		try {
-			await this.page.waitForSelector('div[role=dialog] button[type="submit"][data-testid="react-composer-post-button"]:disabled', {hidden: true}); // :not('disabled') not working
+			await this.page.waitForSelector(
+				'div[role=dialog] button[type="submit"][data-testid="react-composer-post-button"]:disabled',
+				{ hidden: true }
+			); // :not('disabled') not working
 			break;
-		}
-		catch(e) {
-			if(await this.page.$('div[aria-haspopup="true"] p')) { // error in pictures upload
+		} catch (e) {
+			if (await this.page.$('div[aria-haspopup="true"] p')) {
+				// error in pictures upload
 				console.error('Error in pictures upload, trying again...');
 				await cleanPictures();
-			}
-			else throw e;
+			} else throw e;
 		}
 	}
-	if(await this.page.$('div[aria-haspopup="true"] p'))
+	if (await this.page.$('div[aria-haspopup="true"] p'))
 		throw new Error('One or several pictures are invalid for the item "' + item.title + '".');
 	console.log('Pictures uploaded successfully.');
 	await sleep.sleep(1);
-	
 
 	// submit the form if commit mode is enabled
-	if(this.commit) {
-		const submitButtonSelector = 'div[role=dialog] button[type="submit"][data-testid="react-composer-post-button"]';
-		if((await pup.attribute(this.page, submitButtonSelector, 'innerText')) == 'Next') {
+	if (this.commit) {
+		const submitButtonSelector =
+			'div[role=dialog] button[type="submit"][data-testid="react-composer-post-button"]';
+		if ((await pup.attribute(this.page, submitButtonSelector, 'innerText')) == 'Next') {
 			await this.page.click(submitButtonSelector);
 			await sleep.sleep(3);
 		}
 		await this.page.click(submitButtonSelector);
-		await this.page.waitForSelector(submitButtonSelector, {hidden: true});
-	}
-	else { // discard the form otherwise
+		await this.page.waitForSelector(submitButtonSelector, { hidden: true });
+	} else {
+		// discard the form otherwise
 		await this.page.click('button.layerCancel');
 		await this.page.waitForSelector('div.uiOverlayFooter');
 		await sleep.msleep(500);
 		await this.page.click('div.uiOverlayFooter button:nth-child(1)');
-		await this.page.waitForSelector('div[role=dialog] button[type="submit"][aria-haspopup="true"]', {hidden: true});
+		await this.page.waitForSelector(
+			'div[role=dialog] button[type="submit"][aria-haspopup="true"]',
+			{ hidden: true }
+		);
 	}
 	console.log('Sell form filled successfuly.');
 }
@@ -286,13 +306,20 @@ async function removeItem() {
 	await this.page.click('li[role="presentation"]:nth-child(1) > a[role="menuitem"]');
 	await this.page.waitForSelector('div[data-testid="simple_xui_dialog_footer"]');
 	await sleep.msleep(500);
-	if(this.commit) {
-		await this.page.click('div[data-testid="simple_xui_dialog_footer"] a[action="cancel"]:nth-child(2)');
-		await this.page.waitForSelector('div[data-testid="simple_xui_dialog_footer"]', {hidden: true});
-	}
-	else {
-		await this.page.click('div[data-testid="simple_xui_dialog_footer"] a[action="cancel"]:nth-child(1)');
-		await this.page.waitForSelector('div[data-testid="simple_xui_dialog_footer"]', {hidden: true});
+	if (this.commit) {
+		await this.page.click(
+			'div[data-testid="simple_xui_dialog_footer"] a[action="cancel"]:nth-child(2)'
+		);
+		await this.page.waitForSelector('div[data-testid="simple_xui_dialog_footer"]', {
+			hidden: true
+		});
+	} else {
+		await this.page.click(
+			'div[data-testid="simple_xui_dialog_footer"] a[action="cancel"]:nth-child(1)'
+		);
+		await this.page.waitForSelector('div[data-testid="simple_xui_dialog_footer"]', {
+			hidden: true
+		});
 	}
 	console.log('Item removed sucessfully.');
 }

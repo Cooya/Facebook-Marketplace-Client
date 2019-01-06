@@ -12,7 +12,7 @@ module.exports = class ItemsManager extends DatabaseConnection {
 
 	async loadItemsToSell(inputFile) {
 		// if input file exists
-		if (inputFile && await utils.fileExists(inputFile)) {
+		if (inputFile && (await utils.fileExists(inputFile))) {
 			console.log('Loading items from file "' + inputFile + '"...');
 
 			// read xml file
@@ -27,7 +27,8 @@ module.exports = class ItemsManager extends DatabaseConnection {
 			for (let item of processedItems) {
 				itemInDatabase = await this.getItem(item.id);
 				if (itemInDatabase) {
-					if(itemInDatabase.deleted_at) { // if the item has already been remove
+					if (itemInDatabase.deleted_at) {
+						// if the item has already been remove
 						console.warn('Item "' + item.id + '" removed from the marketplace.');
 						item.sent_at = new Date();
 						item.updated_at = null;
@@ -35,9 +36,7 @@ module.exports = class ItemsManager extends DatabaseConnection {
 						item.facebook_id = null;
 						await this.updateItem(item); // we reset the item
 						console.log('Item "' + item.id + '" already removed resetted.');
-					}
-					else
-						console.warn('Item "' + item.id + '" already exists in database.');
+					} else console.warn('Item "' + item.id + '" already exists in database.');
 					continue;
 				}
 
@@ -45,8 +44,7 @@ module.exports = class ItemsManager extends DatabaseConnection {
 				counter++;
 			}
 
-			if (counter)
-				console.log(counter + ' new items loaded into database.');
+			if (counter) console.log(counter + ' new items loaded into database.');
 			await this.countItems();
 		}
 
@@ -56,23 +54,21 @@ module.exports = class ItemsManager extends DatabaseConnection {
 
 	async loadItemsToEdit(inputFile) {
 		// an input file is required
-		if (!inputFile)
-			throw Error('An input file is required.');
-		if (!await utils.fileExists(inputFile))
+		if (!inputFile) throw Error('An input file is required.');
+		if (!(await utils.fileExists(inputFile)))
 			throw Error('The input file "%s" does not exist.'.replace('%s', inputFile));
 
 		// read xml file
 		console.log('Loading items from file "%s"...', inputFile);
 		const xml = await utils.readXMLFile(inputFile);
-		if (!xml.xml.annonce)
-			throw Error('Invalid input file.');
+		if (!xml.xml.annonce) throw Error('Invalid input file.');
 
 		// process items from xml content
 		const processedItems = await processItems.call(this, xml.xml.annonce);
 
 		// check if items are for sale and not already up-to-date
 		const itemsToEdit = [];
-		await asyncForEach(processedItems, async (item) => {
+		await asyncForEach(processedItems, async item => {
 			let itemInDatabase = await this.getItem(item.id);
 			if (!itemInDatabase) {
 				console.warn('Item "%s" not found into database.', item.id);
@@ -83,7 +79,7 @@ module.exports = class ItemsManager extends DatabaseConnection {
 				return;
 			}
 			if (itemInDatabase.deleted_at) {
-				console.warn('Item "%s" has been removed.', item.id);
+				console.warn('Item "%s" has already been removed.', item.id);
 				return;
 			}
 			if (areEqualItems(item, itemInDatabase)) {
@@ -103,20 +99,18 @@ module.exports = class ItemsManager extends DatabaseConnection {
 
 	async loadItemsToRemove(inputFile) {
 		// an existing input file is required
-		if (!inputFile)
-			throw Error('An input file is required.');
-		if (!await utils.fileExists(inputFile))
+		if (!inputFile) throw Error('An input file is required.');
+		if (!(await utils.fileExists(inputFile)))
 			throw Error('The input file "%s" does not exist.'.replace('%s', inputFile));
 
 		// read xml file
 		console.log('Loading items from file "%s"...', inputFile);
 		const xml = await utils.readXMLFile(inputFile);
-		if (!xml.xml.lien)
-			throw Error('Invalid input file.');
+		if (!xml.xml.lien) throw Error('Invalid input file.');
 
 		// process items from xml content
 		const itemsToRemove = [];
-		await asyncForEach(xml.xml.lien, async (link) => {
+		await asyncForEach(xml.xml.lien, async link => {
 			// get the item id from the link
 			const matchResult = link.match(this.linkRegex);
 			if (!matchResult) {
@@ -149,12 +143,13 @@ module.exports = class ItemsManager extends DatabaseConnection {
 	}
 };
 
-async function processItems(items) { // check if items read from the input file are valid
+async function processItems(items) {
+	// check if items read from the input file are valid
 	console.log('%s items to process.', items.length);
 	let invalidCounter = 0;
 
 	const processedItems = [];
-	await asyncForEach(items, async (item) => {
+	await asyncForEach(items, async item => {
 		console.log('Processing item "%s"...', item.titre[0]);
 		let processedItem = {};
 		processedItem.url_site = item.lien[0];
@@ -173,14 +168,23 @@ async function processItems(items) { // check if items read from the input file 
 			for (let photo of item.photos[0].photo) {
 				forceDownload = false;
 				do {
-					picturePath = await utils.downloadFile(photo, this.picturesFolder, null, forceDownload);
+					picturePath = await utils.downloadFile(
+						photo,
+						this.picturesFolder,
+						null,
+						forceDownload
+					);
 					fileSize = await utils.fileSize(picturePath);
 					forceDownload = true;
-				} while(fileSize == 0); // sometimes the file is empty
+				} while (fileSize == 0); // sometimes the file is empty
 				pictures.push(picturePath);
 			}
 			if (!pictures.length) {
-				console.error('Unexpected issue when reading pictures from item "' + processedItem.url_site + '".');
+				console.error(
+					'Unexpected issue when reading pictures from item "' +
+						processedItem.url_site +
+						'".'
+				);
 				//console.error(processedItem);
 				invalidCounter++;
 				return;
@@ -190,7 +194,13 @@ async function processItems(items) { // check if items read from the input file 
 
 		for (let key of this.requiredKeys) {
 			if (!processedItem[key]) {
-				console.error('Processed item is invalid : "' + processedItem.url_site + '", missing key "' + key + '".');
+				console.error(
+					'Processed item is invalid : "' +
+						processedItem.url_site +
+						'", missing key "' +
+						key +
+						'".'
+				);
 				//console.error(processedItem);
 				invalidCounter++;
 				return;
@@ -199,7 +209,9 @@ async function processItems(items) { // check if items read from the input file 
 
 		const matchResult = processedItem.url_site.match(this.linkRegex);
 		if (!matchResult) {
-			console.error('Processed item is invalid : "' + processedItem.url_site + '", link is invalid.');
+			console.error(
+				'Processed item is invalid : "' + processedItem.url_site + '", link is invalid.'
+			);
 			//console.error(processedItem);
 			invalidCounter++;
 			return;
@@ -213,15 +225,16 @@ async function processItems(items) { // check if items read from the input file 
 }
 
 async function asyncForEach(array, callback) {
-	for (let i = 0; i < array.length; i++)
-		await callback(array[i], i, array);
+	for (let i = 0; i < array.length; i++) await callback(array[i], i, array);
 }
 
 function areEqualItems(item1, item2) {
-	return item1.id == item2.id &&
+	return (
+		item1.id == item2.id &&
 		item1.title == item2.title &&
 		item1.price == item2.price &&
 		item1.city == item2.city &&
 		item1.description == item2.description &&
-		item1.url_photo.equalsTo(item2.url_photo);
+		item1.url_photo.equalsTo(item2.url_photo)
+	);
 }

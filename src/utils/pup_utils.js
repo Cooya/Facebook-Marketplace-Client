@@ -39,7 +39,9 @@ async function runBrowser(options) {
 async function createPage(browser, cookiesFile) {
 	console.debug('Creating page...');
 	const page = await browser.newPage();
-	await page.setUserAgent('Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:57.0) Gecko/20100101 Firefox/57.0');
+	await page.setUserAgent(
+		'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:57.0) Gecko/20100101 Firefox/57.0'
+	);
 	await page.setViewport({ width: 1600, height: 900 });
 	await page.setExtraHTTPHeaders({ 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8' });
 	if (cookiesFile) await loadCookies(page, cookiesFile);
@@ -59,25 +61,21 @@ async function goTo(page, url, timeout) {
 	const options = {
 		waitUntil: 'networkidle2'
 	};
-	if (timeout)
-		options['timeout'] = timeout;
+	if (timeout) options['timeout'] = timeout;
 
 	let again = true;
 	while (again) {
 		try {
 			await page.goto(url, options);
 			again = false;
-		}
-		catch (e) {
+		} catch (e) {
 			if (e.message.indexOf('Navigation Timeout Exceeded') != -1)
 				console.log('goTo() timeout !');
-			else
-				throw e;
+			else throw e;
 		}
 	}
 
-	if (page.url() != url)
-		throw Error('The current page is not the destination page.');
+	if (page.url() != url) throw Error('The current page is not the destination page.');
 }
 
 async function scrollPage(page, selector, xPosition = 1) {
@@ -87,27 +85,29 @@ async function scrollPage(page, selector, xPosition = 1) {
 		try {
 			await page.waitForSelector(selector, { timeout: 1000 });
 			return;
-		}
-		catch (e) {
+		} catch (e) {
 			xPosition = xPosition >= 1 ? 0 : xPosition + 0.1;
 			console.log('Scrolling again to ' + xPosition + '...');
 		}
 	}
 }
 
-async function infiniteScroll(page) {
+async function infiniteScroll(page, action) {
 	let oldScrollPos = 0;
 	let newScrollPos = 0;
-	while (true) {
+	let result = await action();
+	while (!result) {
+		console.debug('Scrolling the page...');
 		newScrollPos = await page.evaluate(() => {
 			window.scrollBy(0, document.body.scrollHeight);
 			return document.body.scrollHeight;
 		});
 		await sleep.sleep(1);
-		if (oldScrollPos == newScrollPos)
-			break;
+		if (oldScrollPos == newScrollPos) break;
 		oldScrollPos = newScrollPos;
+		result = await action();
 	}
+	return result;
 }
 
 async function click(page, element, timeout = 30) {
@@ -116,19 +116,16 @@ async function click(page, element, timeout = 30) {
 	let again = true;
 	while (again) {
 		try {
-			await page.evaluate((el) => {
+			await page.evaluate(el => {
 				el.click();
 			}, element);
 			await page.waitForNavigation({ timeout: timeout });
 			again = false;
-		}
-		catch (e) {
+		} catch (e) {
 			if (e.message.indexOf('Navigation Timeout Exceeded') != -1) {
 				console.error('click() timeout !');
 				await reloadPage(page);
-			}
-			else
-				throw e;
+			} else throw e;
 		}
 	}
 }
@@ -145,12 +142,10 @@ async function reloadPage(page, timeout = 30, attempts = 5) {
 			//await page.waitForNavigation({timeout: timeout});
 
 			return;
-		}
-		catch (e) {
+		} catch (e) {
 			if (e.message.indexOf('Navigation Timeout Exceeded') != -1)
 				console.error('Page reloading timeout !');
-			else
-				throw e;
+			else throw e;
 		}
 	}
 
@@ -162,8 +157,7 @@ async function loadCookies(page, cookiesFile) {
 	let cookies;
 	try {
 		cookies = JSON.parse(await readFile(cookiesFile, 'utf-8'));
-	}
-	catch (e) {
+	} catch (e) {
 		await writeFile(cookiesFile, '[]');
 		console.log('Empty cookies file created.');
 		return;
@@ -181,26 +175,32 @@ async function saveCookies(page, cookiesFile) {
 
 async function deleteCookiesFile(cookiesFile) {
 	const fileExists = await fs.exists(cookiesFile);
-	if (!fileExists)
-		return console.log('Cookies file does not exist.');
+	if (!fileExists) return console.log('Cookies file does not exist.');
 	await fs.unlink(cookiesFile);
 	console.log('Cookies file deleted.');
 }
 
 function value(page, selector, value) {
-	return page.evaluate((selector, value) => {
-		var elt = document.querySelector(selector);
-		if (value !== undefined)
-			elt.value = value;
-		return elt.value;
-	}, selector, value);
+	return page.evaluate(
+		(selector, value) => {
+			var elt = document.querySelector(selector);
+			if (value !== undefined) elt.value = value;
+			return elt.value;
+		},
+		selector,
+		value
+	);
 }
 
 async function attribute(page, selector, attribute, value) {
-	return await page.evaluate((selector, attribute, value) => {
-		var elt = document.querySelector(selector);
-		if (value !== undefined)
-			elt[attribute] = value;
-		return elt[attribute];
-	}, selector, attribute, value);
+	return await page.evaluate(
+		(selector, attribute, value) => {
+			var elt = document.querySelector(selector);
+			if (value !== undefined) elt[attribute] = value;
+			return elt[attribute];
+		},
+		selector,
+		attribute,
+		value
+	);
 }
