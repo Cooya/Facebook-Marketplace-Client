@@ -21,6 +21,10 @@ process.on('unhandledRejection', error => {
 			: { email: config.login, password: config.password };
 
 		login(creds, (err, api) => {
+			api.setOptions({
+				logLevel: 'silly'
+			});
+
 			if (err) {
 				console.error('An error occurred while trying to log in.');
 				throw err;
