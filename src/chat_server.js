@@ -33,15 +33,19 @@ process.on('unhandledRejection', error => {
 
 			fs.writeFileSync(config.appStateFile, JSON.stringify(api.getAppState()));
 
+			let listenCounter = 0;
 			const listen = () => {
+				listenCounter++;
 				api.listen((err, message) => {
 					if (err) {
 						console.error('An error occurred while trying to listen messages.');
 						if (
 							err.message ==
-							'parseAndCheckLogin got status code: 200. Bailing out of trying to parse response.'
+								'parseAndCheckLogin got status code: 200. Bailing out of trying to parse response.' &&
+							listenCounter <= 5
 						) {
-							sleep.sleep(5);
+							console.log('Tryin again in 10 seconds...');
+							sleep.sleep(10);
 							listen();
 							return;
 						} else throw err;
