@@ -99,9 +99,17 @@ module.exports = class ItemsSeller {
 		};
 
 		const found = await pup.infiniteScroll(this.page, async () => {
+			const title = item.oldTitle || item.title;
+			console.debug('Looking for ad "' + title + '"...');
 			let actionSelectorButton;
 			for (let itemContainer of await this.page.$$('div.clearfix [direction="left"]')) {
-				if (await itemContainer.$('span[title="' + (item.oldTitle || item.title) + '"')) {
+				console.debug(
+					await itemContainer.$eval(
+						'div.clearfix [direction="left"] span[lines="2"] > span',
+						node => node.innerText
+					)
+				);
+				if (await itemContainer.$('span[title="' + title + '"')) {
 					console.debug('Ad found into the marketplace.');
 					actionSelectorButton = await itemContainer.$('a > span > i[alt=""]');
 					await actionSelectorButton.click();
