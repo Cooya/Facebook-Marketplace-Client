@@ -102,10 +102,10 @@ module.exports = class ItemsSeller {
 			const title = item.oldTitle || item.title;
 			console.debug('Looking for ad "' + title + '"...');
 			let actionSelectorButton;
-			for (let itemContainer of await this.page.$$('div.clearfix [direction="left"]')) {
+			for (let itemContainer of await this.page.$$('div.clearfix[direction="left"]')) {
 				console.debug(
 					await itemContainer.$eval(
-						'div.clearfix [direction="left"] span[lines="2"] > span',
+						'div.clearfix[direction="left"] span[lines="2"] > span',
 						node => node.innerText
 					)
 				);
