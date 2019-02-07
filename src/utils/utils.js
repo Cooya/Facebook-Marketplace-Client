@@ -11,7 +11,7 @@ const writeFile = util.promisify(fs.writeFile);
 const fileStat = util.promisify(fs.stat);
 const parseXML = util.promisify(xml2js.parseString);
 const mkdir = util.promisify(mkdirp);
-const builder = new xml2js.Builder({ rootName: 'xml' });
+const builder = new xml2js.Builder({rootName: 'xml'});
 
 async function readXMLFile(filePath) {
 	const xml = await readFile(filePath);
@@ -26,11 +26,11 @@ async function writeXMLFile(filePath, content) {
 async function downloadFile(url, destFolder, fileName = null, forceDownload = false) {
 	await mkdir(destFolder);
 
-	if (!fileName)
-		fileName = path.basename(url);
+	if (!fileName) fileName = path.basename(url);
 
 	const filePath = path.join(destFolder, fileName);
-	if (!forceDownload && await fileExists(filePath)) // do not download if the file already exists
+	if (!forceDownload && (await fileExists(filePath)))
+		// do not download if the file already exists
 		return Promise.resolve(filePath);
 
 	console.log('Downloading picture...');
@@ -48,8 +48,7 @@ async function fileExists(filePath) {
 	try {
 		await util.promisify(fs.access)(filePath);
 		return true;
-	}
-	catch (e) {
+	} catch (e) {
 		return false;
 	}
 }
@@ -70,12 +69,26 @@ async function randomSleep(interval = 2) {
 
 async function waitForValue(variable, expectedValue, delay = 500, iterations = 10) {
 	//console.debug('Waiting for value...');
-	for(let i = 0; i < iterations; ++i) {
-		if(variable == expectedValue)
-			return true;
+	for (let i = 0; i < iterations; ++i) {
+		if (variable == expectedValue) return true;
 		await sleep.msleep(delay);
 	}
 	return false;
+}
+
+async function attempt(action, attemptsNumber = 3) {
+	let err;
+	for (let i = 0; i < attemptsNumber; ++i) {
+		try {
+			return await action();
+		} catch (e) {
+			console.error(e);
+			err = e;
+		}
+		console.log('Trying again in 5 seconds...');
+		await sleep.sleep(5);
+	}
+	throw err;
 }
 
 module.exports = {
@@ -87,7 +100,8 @@ module.exports = {
 	deleteFile: util.promisify(fs.unlink),
 	getRandomNumber,
 	randomSleep,
-	waitForValue
+	waitForValue,
+	attempt
 };
 
 Array.prototype.equalsTo = function(arr) {

@@ -29,37 +29,32 @@ module.exports = class Launcher {
 
 	async run(action) {
 		// select the action to execute
-		if(!this.actions[action])
-			throw Error('Invalid provided action.');
+		if (!this.actions[action]) throw Error('Invalid provided action.');
 		action = this.actions[action];
 
 		// load items to process
 		const items = await action.loadMethod(action.inputFile);
-		if(!items.length) {
+		if (!items.length) {
 			console.warn('No item to process.');
 			return;
 		}
-		
+
 		// process items
-		while(true) {
+		while (true) {
 			try {
 				await this.itemsSeller.open();
 				await action.processMethod(items);
 				console.log('Process done.');
-			}
-			catch(e) {
-				if(e.message == 'Page crashed!') {
+			} catch (e) {
+				if (e.message == 'Page crashed!') {
 					console.error('The page has crashed, restarting the process...');
 					await this.itemsSeller.close();
 					continue;
-				}
-				else if(e.message.indexOf('net::ERR_NAME_NOT_RESOLVED') != -1) {
+				} else if (e.message.indexOf('net::ERR_NAME_NOT_RESOLVED') != -1) {
 					console.error('The DNS request has failed, restarting the process...');
 					await this.itemsSeller.close();
 					continue;
-				}
-				else
-					throw e;
+				} else throw e;
 			}
 			await this.itemsSeller.close();
 			break;
@@ -68,11 +63,11 @@ module.exports = class Launcher {
 
 	async postItems(items) {
 		let item;
-		for(let i = 0; i < items.length; ++i) {
+		for (let i = 0; i < items.length; ++i) {
 			item = items[i];
 			console.log('Putting item "%s" for sale...', item.id);
 
-			if(this.itemsSeller.fbIds[item.title]) {
+			if (this.itemsSeller.fbIds[item.title]) {
 				console.warn('Item "%s" is already for sale.', item.id);
 				item.facebook_id = this.itemsSeller.fbIds[item.title];
 				item.sent_at = new Date();
@@ -81,9 +76,8 @@ module.exports = class Launcher {
 			}
 
 			await this.itemsSeller.sellItem(item);
-			if(config.commit) {
-				if(!this.itemsSeller.fbIds[item.title])
-					throw Error('The item "' + item.id + '" has not been found among items for sale.');
+			if (config.commit) {
+				if (!this.itemsSeller.fbIds[item.title]) throw Error('The item "' + item.id + '" has not been found among items for sale.');
 				else {
 					item.facebook_id = this.itemsSeller.fbIds[item.title];
 					item.sent_at = new Date();
@@ -91,45 +85,47 @@ module.exports = class Launcher {
 					console.log('Item "%s" is now for sale.', item.id);
 				}
 			}
-			
-			if(i != items.length - 1)
-				await utils.randomSleep(config.commit ? config.intervalBetweenActions : 2);
+
+			if (i != items.length - 1) await utils.randomSleep(config.commit ? config.intervalBetweenActions : 2);
 		}
 	}
-	
+
 	async editItems(items) {
 		let item;
-		for(let i = 0; i < items.length; ++i) {
+		let success;
+		for (let i = 0; i < items.length; ++i) {
 			item = items[i];
 			console.log('Updating item "%s"...', item.id);
 
-			if(await this.itemsSeller.manageItem(item, 'edit')) {
-				if(config.commit) {
+			success = await utils.attempt(this.itemsSeller.manageItem.bind(this.itemsSeller, item, 'edit'), 3);
+			if (success) {
+				if (config.commit) {
 					item.updated_at = new Date();
 					await this.itemsManager.updateItem(item);
 				}
 				console.log('Item "%s" has been updated successfully.', item.id);
 
-				if(i != items.length - 1)
-					await utils.randomSleep(config.commit ? config.intervalBetweenActions : 2);
+				if (i != items.length - 1) await utils.randomSleep(config.commit ? config.intervalBetweenActions : 2);
 			}
 		}
 	}
-	
+
 	async deleteItems(items) {
 		let item;
-		for(let i = 0; i < items.length; ++i) {
+		let success;
+		for (let i = 0; i < items.length; ++i) {
 			item = items[i];
 			console.log('Removing item "%s"...', item.id);
-			if(await this.itemsSeller.manageItem(item, 'remove')) {
-				if(config.commit) {
+
+			success = await utils.attempt(this.itemsSeller.manageItem.bind(this.itemsSeller, item, 'remove'), 3);
+			if (success) {
+				if (config.commit) {
 					item.deleted_at = new Date();
 					await this.itemsManager.updateItem(item);
 				}
 				console.log('Item "%s" has been removed successfully.', item.id);
-				
-				if(i != items.length - 1)
-					await utils.randomSleep(config.commit ? config.intervalBetweenActions : 2);
+
+				if (i != items.length - 1) await utils.randomSleep(config.commit ? config.intervalBetweenActions : 2);
 			}
 		}
 	}
