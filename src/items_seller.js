@@ -246,20 +246,22 @@ async function fillSellForm(item) {
 	};
 	await cleanPictures(); // remove previous pictures if needed
 
+	let pictureUploadError;
 	for (let i = 0; i < 3; ++i) {
 		await (await this.page.$('input[title="Choose a file to upload"]')).uploadFile(...item.url_photo);
 		try {
 			await this.page.waitForSelector('div[role=dialog] button[type="submit"][data-testid="react-composer-post-button"]:disabled', {hidden: true}); // :not('disabled') not working
 			break;
 		} catch (e) {
-			if (await this.page.$('div[aria-haspopup="true"] p')) {
+			pictureUploadError = await this.page.$('div[aria-haspopup="true"] p');
+			if (pictureUploadError) {
 				// error in pictures upload
 				console.error('Error in pictures upload, trying again...');
 				await cleanPictures();
 			} else throw e;
 		}
 	}
-	if (await this.page.$('div[aria-haspopup="true"] p')) throw new Error('One or several pictures are invalid for the item "' + item.title + '".');
+	if (pictureUploadError) throw new Error('One or several pictures are invalid for the item "' + item.title + '".');
 	console.log('Pictures uploaded successfully.');
 	await sleep.sleep(1);
 
