@@ -1,6 +1,5 @@
 node_modules/
 .vscode/
-assets/pictures/
 assets/cookies.json
 assets/insertInput.xml
 assets/updateInput.xml
@@ -10,4 +9,3 @@ assets/db.json
 assets/appstate.json
 config.js
 npm-debug.log
-error.png

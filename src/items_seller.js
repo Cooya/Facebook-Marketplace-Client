@@ -25,7 +25,7 @@ module.exports = class ItemsSeller {
 				return await method.call(this, ...params);
 			} catch (e) {
 				console.debug('Taking screenshot...');
-				await this.page.screenshot({path: 'error.png', fullPage: true});
+				await this.page.screenshot({path: config.screenshotsFolder + new Date().toISOString() + '.png', fullPage: true});
 				throw e;
 			}
 		};

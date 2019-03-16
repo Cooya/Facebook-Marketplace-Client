@@ -1,5 +1,6 @@
 module.exports  = {
     picturesFolder: 'assets/pictures/',
+    screenshotsFolder: 'assets/screenshots/',
     cookiesFile: 'assets/cookies.json',
     insertInputFile: 'assets/insertInput.xml', // fichier d'entrée contenant les annonces à poster
     updateInputFile: 'assets/updateInput.xml', // fichier d'entrée contenant les annonces à modifier
