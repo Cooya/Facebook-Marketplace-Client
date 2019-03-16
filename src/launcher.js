@@ -1,7 +1,8 @@
+const utils = require('@coya/utils');
+
 const config = require('../config');
 const ItemsManager = require('./items_manager');
 const ItemsSeller = require('./items_seller');
-const utils = require('./utils/utils');
 
 module.exports = class Launcher {
 	constructor() {

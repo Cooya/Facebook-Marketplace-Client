@@ -7,13 +7,7 @@ const readFile = util.promisify(fs.readFile);
 const writeFile = util.promisify(fs.writeFile);
 
 const browserOptions = {
-	args: [
-		'--no-sandbox',
-		'--disable-setuid-sandbox',
-		'--disable-notifications',
-		'--window-size=1600,900',
-		'--lang=en_US'
-	],
+	args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-notifications', '--window-size=1600,900', '--lang=en_US'],
 	headless: true
 };
 
@@ -29,7 +23,8 @@ module.exports = {
 	saveCookies,
 	deleteCookiesFile,
 	value,
-	attribute
+	attribute,
+	screenshot
 };
 
 async function runBrowser(options) {
@@ -39,14 +34,12 @@ async function runBrowser(options) {
 async function createPage(browser, cookiesFile) {
 	console.debug('Creating page...');
 	const page = await browser.newPage();
-	await page.setUserAgent(
-		'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:57.0) Gecko/20100101 Firefox/57.0'
-	);
-	await page.setViewport({ width: 1600, height: 900 });
-	await page.setExtraHTTPHeaders({ 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8' });
+	await page.setUserAgent('Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:57.0) Gecko/20100101 Firefox/57.0');
+	await page.setViewport({width: 1600, height: 900});
+	await page.setExtraHTTPHeaders({'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8'});
 	if (cookiesFile) await loadCookies(page, cookiesFile);
-	process.on('unhandledRejection', error => {
-		page.screenshot({ path: 'error.png' }).then(() => {
+	process.on('unhandledRejection', (error) => {
+		page.screenshot({path: 'error.png'}).then(() => {
 			console.error(error);
 			process.exit(1);
 		});
@@ -69,8 +62,7 @@ async function goTo(page, url, timeout) {
 			await page.goto(url, options);
 			again = false;
 		} catch (e) {
-			if (e.message.indexOf('Navigation Timeout Exceeded') != -1)
-				console.log('goTo() timeout !');
+			if (e.message.indexOf('Navigation Timeout Exceeded') != -1) console.log('goTo() timeout !');
 			else throw e;
 		}
 	}
@@ -83,7 +75,7 @@ async function scrollPage(page, selector, xPosition = 1) {
 	while (true) {
 		await page.evaluate('window.scrollTo(0, document.body.scrollHeight * ' + xPosition + ')');
 		try {
-			await page.waitForSelector(selector, { timeout: 1000 });
+			await page.waitForSelector(selector, {timeout: 1000});
 			return;
 		} catch (e) {
 			xPosition = xPosition >= 1 ? 0 : xPosition + 0.1;
@@ -116,10 +108,10 @@ async function click(page, element, timeout = 30) {
 	let again = true;
 	while (again) {
 		try {
-			await page.evaluate(el => {
+			await page.evaluate((el) => {
 				el.click();
 			}, element);
-			await page.waitForNavigation({ timeout: timeout });
+			await page.waitForNavigation({timeout: timeout});
 			again = false;
 		} catch (e) {
 			if (e.message.indexOf('Navigation Timeout Exceeded') != -1) {
@@ -135,7 +127,7 @@ async function reloadPage(page, timeout = 30, attempts = 5) {
 
 	for (let i = 0; i < attempts; ++i) {
 		try {
-			await page.reload({ timeout: timeout });
+			await page.reload({timeout: timeout});
 
 			// old version
 			//await page.evaluate('location.reload()');
@@ -143,8 +135,7 @@ async function reloadPage(page, timeout = 30, attempts = 5) {
 
 			return;
 		} catch (e) {
-			if (e.message.indexOf('Navigation Timeout Exceeded') != -1)
-				console.error('Page reloading timeout !');
+			if (e.message.indexOf('Navigation Timeout Exceeded') != -1) console.error('Page reloading timeout !');
 			else throw e;
 		}
 	}
@@ -203,4 +194,9 @@ async function attribute(page, selector, attribute, value) {
 		attribute,
 		value
 	);
+}
+
+async function screenshot(page, screenshotsFolder = '') {
+	console.debug('Taking screenshot...');
+	await page.screenshot({path: screenshotsFolder + new Date().toISOString() + '.png', fullPage: true});
 }

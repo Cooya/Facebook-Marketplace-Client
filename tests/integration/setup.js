@@ -1,9 +1,9 @@
 const mock = require('simple-mock').mock;
+const utils = require('@coya/utils');
 
 const config = require('../../config');
 const Launcher = require('../../src/launcher');
 const ItemsSeller = require('../../src/items_seller');
-const utils = require('../../src/utils/utils');
 
 process.env.NODE_ENV = 'test';
 
@@ -16,7 +16,7 @@ module.exports = async () => {
 	mock(config, 'updateInputFile', 'tests/integration/update_sample.xml');
 	mock(config, 'deleteInputFile', 'tests/integration/delete_sample.xml');
 	mock(config, 'commit', true);
-	
+
 	// mock ItemsSeller methods
 	mock(ItemsSeller.prototype, 'open').callFn(() => Promise.resolve());
 	mock(ItemsSeller.prototype, 'close').callFn(() => Promise.resolve());

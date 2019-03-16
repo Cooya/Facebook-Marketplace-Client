@@ -1,7 +1,7 @@
 const assert = require('assert');
 
 const config = require('../../config');
-const pup = require('../../src/utils/pup_utils');
+const pup = require('../../src/pup_utils');
 
 describe('test for page redirection', async () => {
 	let browser;
@@ -19,8 +19,7 @@ describe('test for page redirection', async () => {
 		let error = {};
 		try {
 			await pup.goTo(page, 'https://www.facebook.com/marketplace');
-		}
-		catch(e) {
+		} catch (e) {
 			error = e;
 		}
 

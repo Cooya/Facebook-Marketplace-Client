@@ -1,41 +1,39 @@
 {
-	"name": "facebook-marketplace-client",
-	"version": "0.0.1",
-	"description": "",
-	"main": "src/index.js",
-	"dependencies": {
-		"facebook-chat-api": "^1.6.0",
-		"lokijs": "^1.5.5",
-		"mkdirp": "^0.5.1",
-		"mysql": "^2.16.0",
-		"puppeteer": "^1.7.0",
-		"request": "^2.88.0",
-		"sleep": "^5.2.3",
-		"xml2js": "^0.4.19"
-	},
-	"devDependencies": {
-		"eslint": "^5.5.0",
-		"mocha": "^5.2.0",
-		"simple-mock": "^0.8.0"
-	},
-	"scripts": {
-		"test": "NODE_ENV=test eslint . && mocha $(find tests -name '*.js')",
-		"integration-tests": "NODE_ENV=test mocha tests/integration",
-		"e2e-tests": "NODE_ENV=test mocha tests/e2e",
-		"start": "node src/index.js --action posting",
-		"post-ads": "node src/index.js --action posting",
-		"edit-ads": "node src/index.js --action edition",
-		"remove-ads": "node src/index.js --action deletion",
-		"get-item": "node src/index.js --action get --id ",
-		"download-insert-input": "node src/input_downloader.js --route insert",
-		"download-update-input": "node src/input_downloader.js --route update",
-		"download-delete-input": "node src/input_downloader.js --route delete",
-		"generate-output": "node src/output_generator.js",
-		"set-up-database": "node src/set_up_database.js",
-		"reset": "rm -f config.js && rm -f assets/cookies.json && rm -f assets/db.json && rm -rf assets/pictures && rm -rf node_modules",
-		"chat-server": "node src/chat_server.js",
-		"lint": "eslint ."
-	},
-	"author": "Coya",
-	"license": "ISC"
+  "name": "facebook-marketplace-client",
+  "version": "0.0.1",
+  "description": "",
+  "main": "src/index.js",
+  "dependencies": {
+    "@coya/utils": "^1.0.0",
+    "facebook-chat-api": "^1.6.0",
+    "lokijs": "^1.5.5",
+    "mysql": "^2.16.0",
+    "puppeteer": "^1.7.0",
+    "sleep": "^5.2.3"
+  },
+  "devDependencies": {
+    "eslint": "^5.5.0",
+    "mocha": "^5.2.0",
+    "simple-mock": "^0.8.0"
+  },
+  "scripts": {
+    "test": "NODE_ENV=test eslint . && mocha $(find tests -name '*.js')",
+    "integration-tests": "NODE_ENV=test mocha tests/integration",
+    "e2e-tests": "NODE_ENV=test mocha tests/e2e",
+    "start": "node src/index.js --action posting",
+    "post-ads": "node src/index.js --action posting",
+    "edit-ads": "node src/index.js --action edition",
+    "remove-ads": "node src/index.js --action deletion",
+    "get-item": "node src/index.js --action get --id ",
+    "download-insert-input": "node src/input_downloader.js --route insert",
+    "download-update-input": "node src/input_downloader.js --route update",
+    "download-delete-input": "node src/input_downloader.js --route delete",
+    "generate-output": "node src/output_generator.js",
+    "set-up-database": "node src/set_up_database.js",
+    "reset": "rm -f config.js && rm -f assets/cookies.json && rm -f assets/db.json && rm -rf assets/pictures && rm -rf node_modules",
+    "chat-server": "node src/chat_server.js",
+    "lint": "eslint ."
+  },
+  "author": "Coya",
+  "license": "ISC"
 }

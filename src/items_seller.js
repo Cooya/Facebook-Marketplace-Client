@@ -1,7 +1,7 @@
 const sleep = require('sleep');
+const utils = require('@coya/utils');
 
-const pup = require('./utils/pup_utils');
-const utils = require('./utils/utils');
+const pup = require('./pup_utils');
 
 const marketplaceUrl = 'https://www.facebook.com/marketplace/selling';
 
@@ -12,6 +12,7 @@ module.exports = class ItemsSeller {
 		this.cookiesFile = config.cookiesFile;
 		this.commit = config.commit;
 		this.headless = config.headless;
+		this.screenshotsFolder = config.screenshotsFolder;
 		this.fbIds = {};
 		this.adsListReceived = false;
 
@@ -24,8 +25,7 @@ module.exports = class ItemsSeller {
 			try {
 				return await method.call(this, ...params);
 			} catch (e) {
-				console.debug('Taking screenshot...');
-				await this.page.screenshot({path: config.screenshotsFolder + new Date().toISOString() + '.png', fullPage: true});
+				await pup.screenshot(this.page, this.screenshotsFolder);
 				throw e;
 			}
 		};
@@ -173,7 +173,12 @@ async function fillSellFormWrapped(formType, item) {
 			console.log('Form submitted sucessfully.');
 			return;
 		} catch (e) {
+			// display the error and take a screenshot
+			console.error('An error has occurred while filling out the form :');
 			console.error(e);
+			await pup.screenshot(this.page, this.screenshotsFolder);
+
+			// close the modal and try again
 			console.log('Trying again to fill out the form...');
 			await this.page.click('button.layerCancel'); // close the modal
 			await sleep.sleep(1);

@@ -1,10 +1,10 @@
 const assert = require('assert');
 const mock = require('simple-mock').mock;
 const restore = require('simple-mock').restore;
+const utils = require('@coya/utils');
 
 const config = require('../../config');
 const Launcher = require('../../src/launcher');
-const utils = require('../../src/utils/utils');
 
 describe('complete process test : insert, update and delete', () => {
 	let launcher;
@@ -41,7 +41,7 @@ describe('complete process test : insert, update and delete', () => {
 	describe('create ad on the facebook marketplace and throw a "page crashed" error', async () => {
 		before(async () => {
 			let errorAlreadyThrown = false;
-			mock(launcher.itemsSeller, 'sellItem').callFn(item => {
+			mock(launcher.itemsSeller, 'sellItem').callFn((item) => {
 				if (!errorAlreadyThrown) {
 					errorAlreadyThrown = true;
 					throw Error('Page crashed!');
@@ -52,7 +52,7 @@ describe('complete process test : insert, update and delete', () => {
 			});
 
 			let error2AlreadyThrown = false;
-			mock(launcher.itemsSeller, 'fillSellForm').callFn(item => {
+			mock(launcher.itemsSeller, 'fillSellForm').callFn((item) => {
 				if (!error2AlreadyThrown) {
 					error2AlreadyThrown = true;
 					throw Error('Form error !');
@@ -94,10 +94,7 @@ describe('complete process test : insert, update and delete', () => {
 			const item = await launcher.itemsManager.getItem('12345');
 			assert.notEqual(item.facebook_id, null);
 			assert.equal(item.price, '50 000');
-			assert.equal(
-				item.description,
-				'Maison de forêt sympathique avec des oies pour garder la porte d\'entrée.'
-			);
+			assert.equal(item.description, 'Maison de forêt sympathique avec des oies pour garder la porte d\'entrée.');
 			assert.equal(item.city, 'Metz');
 		});
 	});
@@ -185,8 +182,7 @@ describe('complete process test : insert, update and delete', () => {
 
 			let errorsCounter = 0;
 			for (let call of errors.calls) {
-				if (call.arg == 'Cannot update or delete item "%s", not found in selling.')
-					errorsCounter++;
+				if (call.arg == 'Cannot update or delete item "%s", not found in selling.') errorsCounter++;
 			}
 
 			assert.equal(errorsCounter, 1);
@@ -195,7 +191,7 @@ describe('complete process test : insert, update and delete', () => {
 
 	describe('delete already deleted ad', async () => {
 		before(async () => {
-			await launcher.itemsManager.removeItem({ id: '45678' });
+			await launcher.itemsManager.removeItem({id: '45678'});
 		});
 
 		it('it should do nothing', async function() {

@@ -1,19 +1,19 @@
+const utils = require('@coya/utils');
 const path = require('path');
 
 const config = require('../config');
-const utils = require('./utils/utils');
 
 //const apiUrl = 'https://www.consortium-immobilier.fr/nxt-version/outils/db/xml.php';
 const routes = {
-	'insert': {
+	insert: {
 		url: 'https://www.consortium-immobilier.fr/nxt-version/outils/db/xml_insert.php',
 		file: config.insertInputFile
 	},
-	'update': {
+	update: {
 		url: 'https://www.consortium-immobilier.fr/nxt-version/outils/db/xml_update.php',
 		file: config.updateInputFile
 	},
-	'delete': {
+	delete: {
 		url: 'https://www.consortium-immobilier.fr/nxt-version/outils/db/xml_delete.php',
 		file: config.deleteInputFile
 	}
@@ -22,16 +22,14 @@ const routes = {
 (async () => {
 	const args = process.argv.slice(2);
 	let route;
-	for(let i in args) {
-		if(args[i] == '--route')
-			route = args[Number.parseInt(i) + 1];
+	for (let i in args) {
+		if (args[i] == '--route') route = args[Number.parseInt(i) + 1];
 	}
 
-	if(!route) {
+	if (!route) {
 		console.error('A route is required.');
 		process.exit(1);
-	}
-	else if(!routes[route]) {
+	} else if (!routes[route]) {
 		console.error('Invalid route provided.');
 		process.exit(1);
 	}

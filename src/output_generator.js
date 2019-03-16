@@ -1,17 +1,18 @@
+const utils = require('@coya/utils');
+
 const config = require('../config');
 const ItemsManager = require('./items_manager');
-const utils = require('./utils/utils');
 
 (async () => {
 	const itemsManager = new ItemsManager(config);
 	await itemsManager.connect();
-	
+
 	let items = await itemsManager.getItemsForSale();
-	if(!items.length) {
+	if (!items.length) {
 		console.error('No item to process.');
 		process.exit(1);
 	}
-	
+
 	items = items.map((item) => {
 		delete item['meta'];
 		delete item['$loki'];

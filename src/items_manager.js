@@ -1,5 +1,5 @@
 const DatabaseConnection = require('./database_connection');
-const utils = require('./utils/utils');
+const utils = require('@coya/utils');
 
 module.exports = class ItemsManager extends DatabaseConnection {
 	constructor(config) {
@@ -55,8 +55,7 @@ module.exports = class ItemsManager extends DatabaseConnection {
 	async loadItemsToEdit(inputFile) {
 		// an input file is required
 		if (!inputFile) throw Error('An input file is required.');
-		if (!(await utils.fileExists(inputFile)))
-			throw Error('The input file "%s" does not exist.'.replace('%s', inputFile));
+		if (!(await utils.fileExists(inputFile))) throw Error('The input file "%s" does not exist.'.replace('%s', inputFile));
 
 		// read xml file
 		console.log('Loading items from file "%s"...', inputFile);
@@ -68,7 +67,7 @@ module.exports = class ItemsManager extends DatabaseConnection {
 
 		// check if items are for sale and not already up-to-date
 		const itemsToEdit = [];
-		await asyncForEach(processedItems, async item => {
+		await asyncForEach(processedItems, async (item) => {
 			let itemInDatabase = await this.getItem(item.id);
 			if (!itemInDatabase) {
 				console.warn('Item "%s" not found into database.', item.id);
@@ -100,8 +99,7 @@ module.exports = class ItemsManager extends DatabaseConnection {
 	async loadItemsToRemove(inputFile) {
 		// an existing input file is required
 		if (!inputFile) throw Error('An input file is required.');
-		if (!(await utils.fileExists(inputFile)))
-			throw Error('The input file "%s" does not exist.'.replace('%s', inputFile));
+		if (!(await utils.fileExists(inputFile))) throw Error('The input file "%s" does not exist.'.replace('%s', inputFile));
 
 		// read xml file
 		console.log('Loading items from file "%s"...', inputFile);
@@ -110,7 +108,7 @@ module.exports = class ItemsManager extends DatabaseConnection {
 
 		// process items from xml content
 		const itemsToRemove = [];
-		await asyncForEach(xml.xml.lien, async link => {
+		await asyncForEach(xml.xml.lien, async (link) => {
 			// get the item id from the link
 			const matchResult = link.match(this.linkRegex);
 			if (!matchResult) {
@@ -149,7 +147,7 @@ async function processItems(items) {
 	let invalidCounter = 0;
 
 	const processedItems = [];
-	await asyncForEach(items, async item => {
+	await asyncForEach(items, async (item) => {
 		console.log('Processing item "%s"...', item.titre[0]);
 		let processedItem = {};
 		processedItem.url_site = item.lien[0];
@@ -168,23 +166,14 @@ async function processItems(items) {
 			for (let photo of item.photos[0].photo) {
 				forceDownload = false;
 				do {
-					picturePath = await utils.downloadFile(
-						photo,
-						this.picturesFolder,
-						null,
-						forceDownload
-					);
+					picturePath = await utils.downloadFile(photo, this.picturesFolder, null, forceDownload);
 					fileSize = await utils.fileSize(picturePath);
 					forceDownload = true;
 				} while (fileSize == 0); // sometimes the file is empty
 				pictures.push(picturePath);
 			}
 			if (!pictures.length) {
-				console.error(
-					'Unexpected issue when reading pictures from item "' +
-						processedItem.url_site +
-						'".'
-				);
+				console.error('Unexpected issue when reading pictures from item "' + processedItem.url_site + '".');
 				//console.error(processedItem);
 				invalidCounter++;
 				return;
@@ -194,13 +183,7 @@ async function processItems(items) {
 
 		for (let key of this.requiredKeys) {
 			if (!processedItem[key]) {
-				console.error(
-					'Processed item is invalid : "' +
-						processedItem.url_site +
-						'", missing key "' +
-						key +
-						'".'
-				);
+				console.error('Processed item is invalid : "' + processedItem.url_site + '", missing key "' + key + '".');
 				//console.error(processedItem);
 				invalidCounter++;
 				return;
@@ -209,9 +192,7 @@ async function processItems(items) {
 
 		const matchResult = processedItem.url_site.match(this.linkRegex);
 		if (!matchResult) {
-			console.error(
-				'Processed item is invalid : "' + processedItem.url_site + '", link is invalid.'
-			);
+			console.error('Processed item is invalid : "' + processedItem.url_site + '", link is invalid.');
 			//console.error(processedItem);
 			invalidCounter++;
 			return;
