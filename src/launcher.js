@@ -87,7 +87,9 @@ module.exports = class Launcher {
 				}
 			}
 
-			if (i != items.length - 1) await utils.randomSleep(config.commit ? config.intervalBetweenActions : 2);
+			if (i != items.length - 1) {
+				config.commit ? await utils.randomSleep(config.intervalBetweenActions[0], config.intervalBetweenActions[1]) : await utils.randomSleep(2);
+			}
 		}
 	}
 
@@ -106,7 +108,9 @@ module.exports = class Launcher {
 				}
 				console.log('Item "%s" has been updated successfully.', item.id);
 
-				if (i != items.length - 1) await utils.randomSleep(config.commit ? config.intervalBetweenActions : 2);
+				if (i != items.length - 1) {
+					config.commit ? await utils.randomSleep(config.intervalBetweenActions[0], config.intervalBetweenActions[1]) : await utils.randomSleep(2);
+				}
 			}
 		}
 	}
@@ -126,7 +130,9 @@ module.exports = class Launcher {
 				}
 				console.log('Item "%s" has been removed successfully.', item.id);
 
-				if (i != items.length - 1) await utils.randomSleep(config.commit ? config.intervalBetweenActions : 2);
+				if (i != items.length - 1) {
+					config.commit ? await utils.randomSleep(config.intervalBetweenActions[0], config.intervalBetweenActions[1]) : await utils.randomSleep(2);
+				}
 			}
 		}
 	}

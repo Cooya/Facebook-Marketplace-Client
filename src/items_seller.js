@@ -1,4 +1,3 @@
-const sleep = require('sleep');
 const utils = require('@coya/utils');
 
 const pup = require('./pup_utils');
@@ -75,7 +74,7 @@ module.exports = class ItemsSeller {
 		await fillSellFormWrapped.call(this, 'sell', item);
 
 		if (this.commit) {
-			await sleep.sleep(1);
+			await utils.randomSleep(1, 2);
 			this.adsListReceived = false;
 			while (true) {
 				// wait for the request response from the graphql api
@@ -108,7 +107,7 @@ module.exports = class ItemsSeller {
 					actionSelectorButton = await itemContainer.$('a > span > i[alt=""]');
 					await actionSelectorButton.click();
 					await this.page.waitForSelector('li[role="presentation"] > a[role="menuitem"]');
-					await sleep.msleep(500);
+					await utils.randomSleep(1, 2);
 					await actions[action].call(this, item);
 					return true;
 				}
@@ -119,7 +118,7 @@ module.exports = class ItemsSeller {
 
 		if (!found) {
 			console.error('Cannot update or delete item "%s", not found in selling.', item.id);
-			sleep.sleep(3);
+			await utils.randomSleep(3);
 		}
 		return found;
 	}
@@ -136,7 +135,7 @@ async function goToMarketPlace() {
 	if (loginForm) {
 		// log in if needed
 		await logIn.call(this);
-		await sleep.sleep(1);
+		await utils.randomSleep(1, 2);
 		await pup.saveCookies(this.page, this.cookiesFile);
 	}
 }
@@ -146,10 +145,10 @@ async function logIn() {
 	const loginValue = await pup.value(this.page, '#email');
 	if (!loginValue) {
 		await this.page.type('#email', this.login);
-		await sleep.msleep(500);
+		await utils.randomSleep(1, 2);
 	}
 	await this.page.type('#pass', this.password);
-	await sleep.msleep(500);
+	await utils.randomSleep(1, 2);
 	await this.page.click('#loginbutton');
 	await this.page.waitForNavigation();
 	const loginButton = await this.page.$('#loginbutton');
@@ -162,7 +161,7 @@ async function openFormModal(formType) {
 		formType == 'sell' ? 'div[role=navigation]:nth-child(1) button' : 'div.uiLayer:not(.hidden_elem) li[role="presentation"]:nth-child(2) > a[role="menuitem"]';
 	await this.page.click(buttonSelector);
 	await this.page.waitForSelector('div[role=dialog] input');
-	await sleep.sleep(1);
+	await utils.randomSleep(1, 2);
 }
 
 async function fillSellFormWrapped(formType, item) {
@@ -181,7 +180,7 @@ async function fillSellFormWrapped(formType, item) {
 			// close the modal and try again
 			console.log('Trying again to fill out the form...');
 			await this.page.click('button.layerCancel'); // close the modal
-			await sleep.sleep(1);
+			await utils.randomSleep(1, 2);
 			const confirmationBox = await this.page.$('div.uiOverlayFooter button');
 			if (confirmationBox) {
 				await confirmationBox.click(); // confirm the closing
@@ -206,47 +205,47 @@ async function fillSellForm(item) {
 		await this.page.keyboard.press('Delete');
 	}
 	await this.page.type('div[aria-multiline="true"]', item.description);
-	await sleep.msleep(500);
+	await utils.randomSleep(1, 2);
 
 	// title
 	await this.page.click('input[placeholder="What are you selling?"]', {clickCount: 3}); // select all the title text
-	await sleep.msleep(500);
+	await utils.randomSleep(1, 2);
 	await this.page.type('input[placeholder="What are you selling?"]', item.title);
-	await sleep.msleep(500);
+	await utils.randomSleep(1, 2);
 
 	// price
 	await this.page.click('input[placeholder="Price"]', {clickCount: 3}); // select all the price text
-	await sleep.msleep(500);
+	await utils.randomSleep(1, 2);
 	await this.page.type('input[placeholder="Price"]', item.price);
-	await sleep.msleep(500);
+	await utils.randomSleep(1, 2);
 
 	// location
 	await this.page.click('input[placeholder="Add Location"]'); // select all the location text
-	await sleep.msleep(500);
+	await utils.randomSleep(1, 2);
 	await this.page.type('input[placeholder="Add Location"]', item.city);
-	await sleep.msleep(2000);
+	await utils.randomSleep(2, 3);
 	// Facebook now preselects the first entry
 	// await this.page.keyboard.press('ArrowDown');
-	// await sleep.msleep(500);
+	// await utils.randomSleep(1, 2);
 	await this.page.keyboard.press('Enter');
-	await sleep.msleep(500);
+	await utils.randomSleep(1, 2);
 
 	// category
 	await this.page.click('input[placeholder="Select a Category"]'); // select all the category text
-	await sleep.msleep(500);
+	await utils.randomSleep(1, 2);
 	await this.page.type('input[placeholder="Select a Category"]', item.type);
-	await sleep.msleep(500);
+	await utils.randomSleep(1, 2);
 	await this.page.keyboard.press('ArrowDown');
-	await sleep.msleep(500);
+	await utils.randomSleep(1, 2);
 	await this.page.keyboard.press('Enter');
-	await sleep.msleep(500);
+	await utils.randomSleep(1, 2);
 
 	// pictures
 	const cleanPictures = async () => {
 		const selector = 'button[title="Remove photo"], div.fbScrollableAreaContent button[title="Remove"]';
 		while (await this.page.$(selector)) {
 			await this.page.click(selector);
-			await sleep.msleep(500);
+			await utils.randomSleep(1, 2);
 		}
 	};
 	await cleanPictures(); // remove previous pictures if needed
@@ -268,14 +267,14 @@ async function fillSellForm(item) {
 	}
 	if (pictureUploadError) throw new Error('One or several pictures are invalid for the item "' + item.title + '".');
 	console.log('Pictures uploaded successfully.');
-	await sleep.sleep(1);
+	await utils.randomSleep(1, 2);
 
 	// submit the form if commit mode is enabled
 	if (this.commit) {
 		const submitButtonSelector = 'div[role=dialog] button[type="submit"][data-testid="react-composer-post-button"]';
 		if ((await pup.attribute(this.page, submitButtonSelector, 'innerText')) == 'Next') {
 			await this.page.click(submitButtonSelector);
-			await sleep.sleep(3);
+			await utils.randomSleep(3, 5);
 		}
 		await this.page.click(submitButtonSelector);
 		await this.page.waitForSelector(submitButtonSelector, {hidden: true});
@@ -283,7 +282,7 @@ async function fillSellForm(item) {
 		// discard the form otherwise
 		await this.page.click('button.layerCancel');
 		await this.page.waitForSelector('div.uiOverlayFooter');
-		await sleep.msleep(500);
+		await utils.randomSleep(1, 2);
 		await this.page.click('div.uiOverlayFooter button:nth-child(1)');
 		await this.page.waitForSelector('div[role=dialog] button[type="submit"][aria-haspopup="true"]', {hidden: true});
 	}
@@ -297,7 +296,7 @@ async function editItem(item) {
 async function removeItem() {
 	await this.page.click('li[role="presentation"]:nth-child(1) > a[role="menuitem"]');
 	await this.page.waitForSelector('div[data-testid="simple_xui_dialog_footer"]');
-	await sleep.msleep(500);
+	await utils.randomSleep(1, 2);
 	if (this.commit) {
 		await this.page.click('div[data-testid="simple_xui_dialog_footer"] a[action="cancel"]:nth-child(2)');
 		await this.page.waitForSelector('div[data-testid="simple_xui_dialog_footer"]', {
