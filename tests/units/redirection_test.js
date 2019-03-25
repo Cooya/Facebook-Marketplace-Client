@@ -18,7 +18,7 @@ describe('test for page redirection', async () => {
 
 		let error = {};
 		try {
-			await pup.goTo(page, 'https://www.facebook.com/marketplace');
+			await pup.goTo(page, 'https://www.facebook.com/find-friends/browser/');
 		} catch (e) {
 			error = e;
 		}

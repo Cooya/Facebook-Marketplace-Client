@@ -157,9 +157,15 @@ async function logIn() {
 }
 
 async function openFormModal(formType) {
-	const buttonSelector =
-		formType == 'sell' ? 'div[role=navigation]:nth-child(1) button' : 'div.uiLayer:not(.hidden_elem) li[role="presentation"]:nth-child(2) > a[role="menuitem"]';
-	await this.page.click(buttonSelector);
+	console.log('Opening form modal...');
+	if (formType == 'sell') {
+		await this.page.click('div[role=navigation]:nth-child(1) button');
+		await this.page.waitForSelector('div[role=dialog] i');
+		await utils.randomSleep(1, 2);
+		await this.page.click('div[role=dialog] i:nth-child(1)');
+	} else {
+		await this.page.click('div.uiLayer:not(.hidden_elem) li[role="presentation"]:nth-child(2) > a[role="menuitem"]');
+	}
 	await this.page.waitForSelector('div[role=dialog] input');
 	await utils.randomSleep(1, 2);
 }

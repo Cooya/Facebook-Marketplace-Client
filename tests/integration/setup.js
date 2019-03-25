@@ -22,7 +22,10 @@ module.exports = async () => {
 	mock(ItemsSeller.prototype, 'close').callFn(() => Promise.resolve());
 	mock(ItemsSeller.prototype, 'sellItem').callFn(() => Promise.resolve());
 	mock(ItemsSeller.prototype, 'manageItem').callFn(() => Promise.resolve(true));
-	mock(utils, 'randomSleep').callFn(() => Promise.resolve());
+
+	// mock randomSleep parameters to reduce the sleeping time
+	utils.randomSleep2 = utils.randomSleep;
+	utils.randomSleep = () => utils.randomSleep2(1);
 
 	let launcher = new Launcher();
 	await launcher.itemsManager.connect();

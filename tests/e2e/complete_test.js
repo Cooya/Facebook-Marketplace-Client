@@ -21,7 +21,9 @@ describe('complete process test : insert, update and delete', () => {
 		mysql.database = 'Tests';
 		mock(config, 'mysql', mysql);
 
-		mock(utils, 'randomSleep').callFn(() => Promise.resolve());
+		// mock randomSleep parameters to reduce the sleeping time
+		utils.randomSleep2 = utils.randomSleep;
+		utils.randomSleep = () => utils.randomSleep2(1);
 
 		launcher = new Launcher();
 		await launcher.itemsManager.connect();
