@@ -12,7 +12,7 @@ describe('test log in failure', async () => {
 		itemsSeller.password = 'bad_password';
 		itemsSeller.cookiesFile = null;
 		itemsSeller.commit = false;
-		itemsSeller.headless = false;
+		itemsSeller.headless = true;
 	});
 
 	after(async () => {
@@ -25,8 +25,7 @@ describe('test log in failure', async () => {
 		let error = {};
 		try {
 			await itemsSeller.open();
-		}
-		catch(e) {
+		} catch (e) {
 			error = e;
 		}
 

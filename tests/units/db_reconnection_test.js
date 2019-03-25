@@ -17,7 +17,7 @@ describe('test database reconnection', async () => {
 
 	it('should reconnect when connection is lost', async () => {
 		let items = await connection.getItems();
-		assert(items.length, 3);
+		assert(items.length != 0);
 
 		await connection.end(); // close the first connection otherwise the script does not stop
 		const error = new Error('Connection lost: The server closed the connection.');
@@ -25,6 +25,6 @@ describe('test database reconnection', async () => {
 		connection.connection.emit('error', error);
 
 		items = await connection.getItems();
-		assert(items.length, 3);
+		assert(items.length != 0);
 	});
 });
