@@ -11,6 +11,7 @@ Copier le fichier "assets/config.template" à la racine du projet en renommant "
 ```javascript
 module.exports  = {
   picturesFolder: 'assets/pictures/',
+  screenshotsFolder: 'assets/screenshots/',
   cookiesFile: 'assets/cookies.json',
   insertInputFile: 'assets/insertInput.xml', // fichier d'entrée contenant les annonces à poster
   updateInputFile: 'assets/updateInput.xml', // fichier d'entrée contenant les annonces à modifier
@@ -30,9 +31,13 @@ module.exports  = {
   itemCategory: 'Property For Sale', // la catégorie des objets à mettre en vente (doit être en anglais)
   headless: false, // détermine si le navigateur est affiché ou non (laisser à false si vous voulez voir ce qu'il se passe pendant l'exécution du script)
   commit: false, // lorsque cette valeur vaut false, la mise en vente est simplement simulée, mettre à true si vous souhaitez réellement mettre les items en vente
-  intervalBetweenActions: [30, 300] // intervalle minimum et maximum en secondes entre chaque action (mise en vente, édition ou suppression)
+  intervalBetweenActions: [30, 300], // intervalle minimum et maximum en secondes entre chaque action (mise en vente, édition ou suppression)
+  actionsBetweenBreak: [5, 10], // nombre d'actions entre chaque pause (peut être un nombre fixe ou un interval)
+  breakTime: [300, 600], // durée en secondes d'une pause (peut être un nombre fixe ou un interval)
+  testsTimeout: 60000 // timeout en millisecondes pour les tests
 }
 ```
+
 Le projet nécessite une base de données MySQL, pour créer les tables, il suffit de lancer la commande suivante :
 ```bash
 npm run set-up-database
