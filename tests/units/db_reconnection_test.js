@@ -7,7 +7,9 @@ describe('test database reconnection', async () => {
 	let connection;
 
 	before(async () => {
-		connection = new DatabaseConnection(config.mysql);
+		const mysqlConfig = Object.assign({}, config.mysql, {database: 'Tests'});
+
+		connection = new DatabaseConnection(mysqlConfig);
 		await connection.connect();
 	});
 
