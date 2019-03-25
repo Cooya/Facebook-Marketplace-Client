@@ -20,6 +20,8 @@ module.exports  = {
     itemCategory: 'Property For Sale', // la catégorie des objets à mettre en vente (doit être en anglais)
     headless: false, // détermine si le navigateur est affiché ou non (laisser à false si vous voulez voir ce qu'il se passe pendant l'exécution du script)
     commit: false, // lorsque cette valeur vaut false, la mise en vente est simplement simulée, mettre à true si vous souhaitez réellement mettre les items en vente
-    intervalBetweenActions: [30, 300] // intervalle minimum et maximum en secondes entre chaque vente,
+    intervalBetweenActions: [30, 300] // interval minimum et maximum en secondes entre chaque vente,
+    actionsBetweenBreak: [5, 10], // nombre d'actions entre chaque pause (peut être un nombre fixe ou un interval)
+	breakTime: [300, 600], // durée en secondes d'une pause (peut être un nombre fixe ou un interval)
     testsTimeout: 60000 // timeout en millisecondes pour les tests
 }

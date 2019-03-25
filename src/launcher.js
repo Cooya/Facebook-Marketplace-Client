@@ -26,6 +26,9 @@ module.exports = class Launcher {
 				processMethod: this.deleteItems.bind(this)
 			}
 		};
+
+		this.breakParameters = {};
+		this.determineBreakParameters();
 	}
 
 	async run(action) {
@@ -87,9 +90,7 @@ module.exports = class Launcher {
 				}
 			}
 
-			if (i != items.length - 1) {
-				config.commit ? await utils.randomSleep(config.intervalBetweenActions[0], config.intervalBetweenActions[1]) : await utils.randomSleep(2);
-			}
+			if (i != items.length - 1) await this.makeBreak();
 		}
 	}
 
@@ -108,9 +109,7 @@ module.exports = class Launcher {
 				}
 				console.log('Item "%s" has been updated successfully.', item.id);
 
-				if (i != items.length - 1) {
-					config.commit ? await utils.randomSleep(config.intervalBetweenActions[0], config.intervalBetweenActions[1]) : await utils.randomSleep(2);
-				}
+				if (i != items.length - 1) await this.makeBreak();
 			}
 		}
 	}
@@ -130,10 +129,26 @@ module.exports = class Launcher {
 				}
 				console.log('Item "%s" has been removed successfully.', item.id);
 
-				if (i != items.length - 1) {
-					config.commit ? await utils.randomSleep(config.intervalBetweenActions[0], config.intervalBetweenActions[1]) : await utils.randomSleep(2);
-				}
+				if (i != items.length - 1) await this.makeBreak();
 			}
 		}
+	}
+
+	determineBreakParameters() {
+		if (config.actionsBetweenBreaks && config.breakTime) {
+			(this.breakParameters.actionsBeforeNextBreak = Array.isArray(config.actionsBetweenBreaks)
+				? utils.getRandomNumber(...config.actionsBetweenBreaks)
+				: config.actionsBeforeNextBreak),
+			(this.breakParameters.breakTime = Array.isArray(config.breakTime) ? utils.getRandomNumber(...config.breakTime) : config.breakTime);
+		}
+	}
+
+	async makeBreak() {
+		if (!config.commit) await utils.randomSleep(2);
+		else if (this.breakParameters.actionsBeforeNextBreak && --this.breakParameters.actionsBeforeNextBreak == 0) {
+			console.log('Pausing the process...');
+			await utils.randomSleep(this.breakParameters.breakTime); // time for a break
+			this.determineBreakParameters(); // reset the actions counter and the break time
+		} else await utils.randomSleep(config.intervalBetweenActions[0], config.intervalBetweenActions[1]);
 	}
 };
