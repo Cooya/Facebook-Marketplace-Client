@@ -57,6 +57,10 @@ module.exports = class ItemsSeller {
 						console.error('No resource with given identifier found.');
 						return;
 					}
+					if (e.message.indexOf('Unexpected token') !== -1) {
+						console.error('Bad JSON received.');
+						return;
+					}
 					throw e;
 				}
 				json.data.viewer.selling_feed_one_page.edges.forEach((ad) => {
@@ -143,10 +147,9 @@ async function goToMarketPlace() {
 async function logIn() {
 	console.log('Logging in...');
 	const loginValue = await pup.value(this.page, '#email');
-	if (!loginValue) {
-		await this.page.type('#email', this.login);
-		await utils.randomSleep(1, 2);
-	}
+	if (loginValue) await emptyInput(this.page, '#email');
+	await this.page.type('#email', this.login);
+	await utils.randomSleep(1, 2);
 	await this.page.type('#pass', this.password);
 	await utils.randomSleep(1, 2);
 	await this.page.click('#loginbutton');
@@ -201,15 +204,7 @@ async function fillSellFormWrapped(formType, item) {
 async function fillSellForm(item) {
 	// description
 	const previousDescriptionValue = await pup.attribute(this.page, 'div[aria-multiline="true"]', 'textContent');
-	if (previousDescriptionValue) {
-		// empty description if needed
-		await this.page.type('div[aria-multiline="true"]', '');
-		await this.page.keyboard.down('Control');
-		await this.page.keyboard.down('KeyA');
-		await this.page.keyboard.up('KeyA');
-		await this.page.keyboard.up('Control');
-		await this.page.keyboard.press('Delete');
-	}
+	if (previousDescriptionValue) await emptyInput(this.page, 'div[aria-multiline="true"]'); // empty description if needed
 	await this.page.type('div[aria-multiline="true"]', item.description);
 	await utils.randomSleep(1, 2);
 
@@ -315,4 +310,13 @@ async function removeItem() {
 		});
 	}
 	console.log('Item removed sucessfully.');
+}
+
+async function emptyInput(page, inputSelector) {
+	await page.type(inputSelector, '');
+	await page.keyboard.down('Control');
+	await page.keyboard.down('KeyA');
+	await page.keyboard.up('KeyA');
+	await page.keyboard.up('Control');
+	await page.keyboard.press('Delete');
 }
