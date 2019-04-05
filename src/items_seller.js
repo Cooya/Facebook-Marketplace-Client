@@ -163,13 +163,13 @@ async function openFormModal(formType) {
 	console.log('Opening form modal...');
 	if (formType == 'sell') {
 		await this.page.click('div[role=navigation]:nth-child(1) button');
-		await this.page.waitForSelector('div[aria-label="Create a new sale post on Marketplace"] i');
+		await this.page.waitForSelector('div[aria-label="Create a new sale post on Marketplace"] a[role="button"] i');
 		await utils.randomSleep(1, 2);
-		await this.page.click('div[aria-label="Create a new sale post on Marketplace"] i:nth-child(1)');
+		await this.page.click('div[aria-label="Create a new sale post on Marketplace"] a[role="button"] i:nth-child(1)');
 	} else {
 		await this.page.click('div.uiLayer:not(.hidden_elem) li[role="presentation"]:nth-child(2) > a[role="menuitem"]');
 	}
-	await this.page.waitForSelector('div[role=dialog] input');
+	await this.page.waitForSelector('div[aria-label="Create a new sale post on Marketplace"] input[placeholder="What are you selling?"]');
 	await utils.randomSleep(1, 2);
 }
 
