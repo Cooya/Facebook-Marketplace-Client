@@ -160,16 +160,20 @@ async function logIn() {
 }
 
 async function openFormModal(formType) {
+	const formTypeSelector = 'div[aria-label="Create a new sale post on Marketplace"] a[role="button"] i';
+	const formInputSelector = 'div[aria-label="Create a new sale post on Marketplace"] input[placeholder="What are you selling?"]';
+
 	console.log('Opening form modal...');
 	if (formType == 'sell') {
 		await this.page.click('div[role=navigation]:nth-child(1) button');
-		await this.page.waitForSelector('div[aria-label="Create a new sale post on Marketplace"] a[role="button"] i');
+		await this.page.waitForSelector(formTypeSelector + ', ' + formInputSelector);
 		await utils.randomSleep(1, 2);
-		await this.page.click('div[aria-label="Create a new sale post on Marketplace"] a[role="button"] i:nth-child(1)');
+		if(await this.page.$(formTypeSelector)) // this step seems to have disappeared
+			await this.page.click(formTypeSelector + ':nth-child(1)');
 	} else {
 		await this.page.click('div.uiLayer:not(.hidden_elem) li[role="presentation"]:nth-child(2) > a[role="menuitem"]');
 	}
-	await this.page.waitForSelector('div[aria-label="Create a new sale post on Marketplace"] input[placeholder="What are you selling?"]');
+	await this.page.waitForSelector(formInputSelector);
 	await utils.randomSleep(1, 2);
 }
 
