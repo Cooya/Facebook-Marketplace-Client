@@ -136,19 +136,23 @@ module.exports = class Launcher {
 
 	determineBreakParameters() {
 		if (config.actionsBetweenBreaks && config.breakTime) {
+			console.log('Determining parameters for the next break...');
 			(this.breakParameters.actionsBeforeNextBreak = Array.isArray(config.actionsBetweenBreaks)
 				? utils.getRandomNumber(...config.actionsBetweenBreaks)
 				: config.actionsBeforeNextBreak),
 			(this.breakParameters.breakTime = Array.isArray(config.breakTime) ? utils.getRandomNumber(...config.breakTime) : config.breakTime);
+			console.log('Number of actions before the next break : %d.', this.breakParameters.actionsBeforeNextBreak);
+			console.log('Duration of next break : %d seconds.', this.breakParameters.breakTime);
 		}
 	}
 
 	async makeBreak() {
 		if (!config.commit) await utils.randomSleep(2);
 		else if (this.breakParameters.actionsBeforeNextBreak && --this.breakParameters.actionsBeforeNextBreak == 0) {
-			console.log('Pausing the process...');
+			console.log('Time for a break, pausing the process for %d seconds...', this.breakParameters.breakTime);
 			await utils.randomSleep(this.breakParameters.breakTime); // time for a break
 			this.determineBreakParameters(); // reset the actions counter and the break time
 		} else await utils.randomSleep(config.intervalBetweenActions[0], config.intervalBetweenActions[1]);
+		console.log(this.breakParameters.actionsBeforeNextBreak);
 	}
 };
