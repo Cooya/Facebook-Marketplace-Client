@@ -1,5 +1,6 @@
+const pup = require('@coya/puppy');
+
 const config = require('../config');
-const pup = require('./pup_utils');
 
 (async () => {
 	const browser = await pup.runBrowser({headless: false});

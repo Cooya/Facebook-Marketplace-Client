@@ -1,6 +1,5 @@
+const pup = require('@coya/puppy');
 const utils = require('@coya/utils');
-
-const pup = require('./pup_utils');
 
 const marketplaceUrl = 'https://www.facebook.com/marketplace/selling';
 

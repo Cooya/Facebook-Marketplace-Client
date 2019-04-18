@@ -1,7 +1,7 @@
 const assert = require('assert');
+const pup = require('@coya/puppy');
 
 const config = require('../../config');
-const pup = require('../../src/pup_utils');
 
 describe('test for page redirection', async () => {
 	let browser;
@@ -23,6 +23,6 @@ describe('test for page redirection', async () => {
 			error = e;
 		}
 
-		assert.equal(error.message, 'The current page is not the destination page.');
+		assert(error.message.indexOf('The current page is not the destination page,') !== -1);
 	});
 });
