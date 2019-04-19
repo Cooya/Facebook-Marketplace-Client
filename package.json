@@ -4,12 +4,13 @@
   "description": "",
   "main": "src/index.js",
   "dependencies": {
-    "@coya/puppy": "0.0.2",
+    "@coya/puppy": "^0.1.0",
     "@coya/utils": "^1.5.1",
     "facebook-chat-api": "^1.6.0",
     "lokijs": "^1.5.5",
     "mysql": "^2.16.0",
-    "sleep": "^5.2.3"
+    "sleep": "^5.2.3",
+    "winston": "^3.2.1"
   },
   "devDependencies": {
     "eslint": "^5.5.0",
@@ -20,19 +21,18 @@
     "test": "NODE_ENV=test eslint . && mocha $(find tests -name '*.js')",
     "integration-tests": "NODE_ENV=test mocha tests/integration",
     "e2e-tests": "NODE_ENV=test mocha tests/e2e",
+    "lint": "eslint .",
     "start": "node src/index.js --action posting",
     "post-ads": "node src/index.js --action posting",
     "edit-ads": "node src/index.js --action edition",
     "remove-ads": "node src/index.js --action deletion",
     "get-item": "node src/index.js --action get --id ",
-    "download-insert-input": "node src/input_downloader.js --route insert",
-    "download-update-input": "node src/input_downloader.js --route update",
-    "download-delete-input": "node src/input_downloader.js --route delete",
-    "generate-output": "node src/output_generator.js",
-    "set-up-database": "node src/set_up_database.js",
-    "reset": "rm -f config.js && rm -f assets/cookies.json && rm -f assets/db.json && rm -rf assets/pictures && rm -rf node_modules",
-    "chat-server": "node src/chat_server.js",
-    "lint": "eslint ."
+    "download-insert-input": "node scripts/input_downloader.js --route insert",
+    "download-update-input": "node scripts/input_downloader.js --route update",
+    "download-delete-input": "node scripts/input_downloader.js --route delete",
+    "generate-output": "node scripts/output_generator.js",
+    "set-up-database": "node scripts/set_up_database.js",
+    "chat-server": "node src/chat_server.js"
   },
   "author": "Coya",
   "license": "ISC"

@@ -3,6 +3,7 @@ const mysql = require('mysql');
 const util = require('util');
 
 const config = require('../config');
+
 const readFile = util.promisify(fs.readFile);
 
 (async () => {

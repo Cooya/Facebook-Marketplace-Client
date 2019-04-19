@@ -2,6 +2,8 @@ const loki = require('lokijs');
 const util = require('util');
 const utils = require('@coya/utils');
 
+const logger = require('./logger');
+
 const loadDatabase = util.promisify(new loki().loadDatabase);
 const saveDatabase = util.promisify(new loki().saveDatabase);
 
@@ -30,11 +32,11 @@ module.exports = class ItemsManager {
 	getItemForSale(id) {
 		const item = this.getItem(id);
 		if (!item) {
-			console.warn('Item "%s" not found into database.', id);
+			logger.warning('Item "%s" not found into database.', id);
 			return null;
 		}
 		if (!item.fbId) {
-			console.warn('Item "%s" has not been processed yet.', id);
+			logger.warning('Item "%s" has not been processed yet.', id);
 			return null;
 		}
 		return item;
@@ -58,7 +60,7 @@ module.exports = class ItemsManager {
 	async loadItemsToSell(inputFile) {
 		// if input file exists
 		if (inputFile && (await utils.fileExists(inputFile))) {
-			console.log('Loading items from file "' + inputFile + '"...');
+			logger.info('Loading items from file "' + inputFile + '"...');
 
 			// read xml file
 			const xml = await utils.readXMLFile(inputFile);
@@ -80,7 +82,7 @@ module.exports = class ItemsManager {
 		if (!(await utils.fileExists(inputFile))) throw Error('The input file "%s" does not exist.'.replace('%s', inputFile));
 
 		// read xml file
-		console.log('Loading items from file "%s"...', inputFile);
+		logger.info('Loading items from file "%s"...', inputFile);
 		const xml = await utils.readXMLFile(inputFile);
 		if (!xml.xml.annonce) throw Error('Invalid input file.');
 
@@ -93,7 +95,7 @@ module.exports = class ItemsManager {
 			if (!itemForSale) return acc;
 
 			if (this.areEqualItems(processedItem, itemForSale)) {
-				console.warn('Item "%s" is already up-to-date.', processedItem.id);
+				logger.warning('Item "%s" is already up-to-date.', processedItem.id);
 				return acc;
 			}
 
@@ -114,7 +116,7 @@ module.exports = class ItemsManager {
 		if (!(await utils.fileExists(inputFile))) throw Error('The input file "%s" does not exist.'.replace('%s', inputFile));
 
 		// read xml file
-		console.log('Loading items from file "%s"...', inputFile);
+		logger.info('Loading items from file "%s"...', inputFile);
 		const xml = await utils.readXMLFile(inputFile);
 		if (!xml.xml.lien) throw Error('Invalid input file.');
 
@@ -122,13 +124,13 @@ module.exports = class ItemsManager {
 		return xml.xml.lien.reduce((acc, link) => {
 			const matchResult = link.match(this.linkRegex);
 			if (!matchResult) {
-				console.error('Link "%s" is invalid.', link);
+				logger.error('Link "%s" is invalid.', link);
 				return acc;
 			}
 
 			let itemForSale = this.getItemForSale(matchResult[1]);
 			if (!itemForSale) {
-				console.warn('Item "%s" is not for sale.', matchResult[1]);
+				logger.warning('Item "%s" is not for sale.', matchResult[1]);
 				return acc;
 			}
 
@@ -140,23 +142,23 @@ module.exports = class ItemsManager {
 	async updateItem(item) {
 		this.itemsCollection.update(item);
 		await saveDatabase.call(this.db);
-		console.log('Item "%s" updated into database.', item.id);
+		logger.info('Item "%s" updated into database.', item.id);
 	}
 
 	async removeItem(item) {
 		this.itemsCollection.remove(item);
 		await saveDatabase.call(this.db);
-		console.log('Item "%s" deleted from database.', item.id);
+		logger.info('Item "%s" deleted from database.', item.id);
 	}
 };
 
 async function processItems(items) {
-	console.log('%s items to process.', items.length);
+	logger.info('%s items to process.', items.length);
 	let invalidCounter = 0;
 
 	const processedItems = [];
 	await asyncForEach(items, async (item) => {
-		console.log('Processing item "%s"...', item.titre[0]);
+		logger.info('Processing item "%s"...', item.titre[0]);
 		let processedItem = {};
 		processedItem.link = item.lien[0];
 		processedItem.title = item.titre[0];
@@ -172,8 +174,8 @@ async function processItems(items) {
 				if (picturePath) processedItem.pictures.push(picturePath);
 			}
 			if (!processedItem.pictures.length) {
-				console.error('Unexpected issue when reading pictures from item "' + processedItem.link + '".');
-				//console.error(processedItem);
+				logger.error('Unexpected issue when reading pictures from item "' + processedItem.link + '".');
+				//logger.error(processedItem);
 				invalidCounter++;
 				return;
 			}
@@ -181,8 +183,8 @@ async function processItems(items) {
 
 		for (let key of this.requiredKeys) {
 			if (!processedItem[key]) {
-				console.error('Processed item is invalid : "' + processedItem.link + '", missing key "' + key + '".');
-				//console.error(processedItem);
+				logger.error('Processed item is invalid : "' + processedItem.link + '", missing key "' + key + '".');
+				//logger.error(processedItem);
 				invalidCounter++;
 				return;
 			}
@@ -190,8 +192,8 @@ async function processItems(items) {
 
 		const matchResult = processedItem['link'].match(this.linkRegex);
 		if (!matchResult) {
-			console.error('Processed item is invalid : "' + processedItem.link + '", link is invalid.');
-			//console.error(processedItem);
+			logger.error('Processed item is invalid : "' + processedItem.link + '", link is invalid.');
+			//logger.error(processedItem);
 			invalidCounter++;
 			return;
 		}
@@ -200,7 +202,7 @@ async function processItems(items) {
 		processedItems.push(processedItem);
 	});
 
-	console.log(invalidCounter + ' invalid items.');
+	logger.info(invalidCounter + ' invalid items.');
 	return processedItems;
 }
 
@@ -209,18 +211,18 @@ async function saveItemsIntoDatabase(items) {
 	for (let item of items) {
 		if (this.itemsCollection.findOne({id: item.id}));
 		else {
-			//console.warn('Item "' + item.id + '" already exists in database.');
+			//logger.warning('Item "' + item.id + '" already exists in database.');
 			this.itemsCollection.insert(item);
-			//console.log('Item "' + item.id + '" inserted into database.');
+			//logger.info('Item "' + item.id + '" inserted into database.');
 			counter++;
 		}
 	}
 
 	if (counter) {
 		await saveDatabase.call(this.db);
-		console.log(counter + ' new items loaded into database.');
+		logger.info(counter + ' new items loaded into database.');
 	}
-	console.log(this.itemsCollection.data.length + ' items currently in database.');
+	logger.info(this.itemsCollection.data.length + ' items currently in database.');
 }
 
 async function asyncForEach(array, callback) {

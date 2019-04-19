@@ -3,6 +3,7 @@ const utils = require('@coya/utils');
 const config = require('../config');
 const ItemsManager = require('./items_manager');
 const ItemsSeller = require('./items_seller');
+const logger = require('./logger');
 
 module.exports = class Launcher {
 	constructor() {
@@ -39,7 +40,7 @@ module.exports = class Launcher {
 		// load items to process
 		const items = await action.loadMethod(action.inputFile);
 		if (!items.length) {
-			console.warn('No item to process.');
+			logger.warning('No item to process.');
 			return;
 		}
 
@@ -48,14 +49,14 @@ module.exports = class Launcher {
 			try {
 				await this.itemsSeller.open();
 				await action.processMethod(items);
-				console.log('Process done.');
+				logger.info('Process done.');
 			} catch (e) {
 				if (e.message == 'Page crashed!') {
-					console.error('The page has crashed, restarting the process...');
+					logger.error('The page has crashed, restarting the process...');
 					await this.itemsSeller.close();
 					continue;
 				} else if (e.message.indexOf('net::ERR_NAME_NOT_RESOLVED') != -1) {
-					console.error('The DNS request has failed, restarting the process...');
+					logger.error('The DNS request has failed, restarting the process...');
 					await this.itemsSeller.close();
 					continue;
 				} else throw e;
@@ -69,10 +70,10 @@ module.exports = class Launcher {
 		let item;
 		for (let i = 0; i < items.length; ++i) {
 			item = items[i];
-			console.log('Putting item "%s" for sale...', item.id);
+			logger.info('Putting item "%s" for sale...', item.id);
 
 			if (this.itemsSeller.fbIds[item.title]) {
-				console.warn('Item "%s" is already for sale.', item.id);
+				logger.warning('Item "%s" is already for sale.', item.id);
 				item.facebook_id = this.itemsSeller.fbIds[item.title];
 				item.sent_at = new Date();
 				await this.itemsManager.updateItem(item);
@@ -86,7 +87,7 @@ module.exports = class Launcher {
 					item.facebook_id = this.itemsSeller.fbIds[item.title];
 					item.sent_at = new Date();
 					await this.itemsManager.updateItem(item);
-					console.log('Item "%s" is now for sale.', item.id);
+					logger.info('Item "%s" is now for sale.', item.id);
 				}
 			}
 
@@ -99,7 +100,7 @@ module.exports = class Launcher {
 		let success;
 		for (let i = 0; i < items.length; ++i) {
 			item = items[i];
-			console.log('Updating item "%s"...', item.id);
+			logger.info('Updating item "%s"...', item.id);
 
 			success = await utils.attempt(this.itemsSeller.manageItem.bind(this.itemsSeller, item, 'edit'), 3);
 			if (success) {
@@ -107,7 +108,7 @@ module.exports = class Launcher {
 					item.updated_at = new Date();
 					await this.itemsManager.updateItem(item);
 				}
-				console.log('Item "%s" has been updated successfully.', item.id);
+				logger.info('Item "%s" has been updated successfully.', item.id);
 
 				if (i != items.length - 1) await this.makeBreak();
 			}
@@ -119,7 +120,7 @@ module.exports = class Launcher {
 		let success;
 		for (let i = 0; i < items.length; ++i) {
 			item = items[i];
-			console.log('Removing item "%s"...', item.id);
+			logger.info('Removing item "%s"...', item.id);
 
 			success = await utils.attempt(this.itemsSeller.manageItem.bind(this.itemsSeller, item, 'remove'), 3);
 			if (success) {
@@ -127,7 +128,7 @@ module.exports = class Launcher {
 					item.deleted_at = new Date();
 					await this.itemsManager.updateItem(item);
 				}
-				console.log('Item "%s" has been removed successfully.', item.id);
+				logger.info('Item "%s" has been removed successfully.', item.id);
 
 				if (i != items.length - 1) await this.makeBreak();
 			}
@@ -136,23 +137,23 @@ module.exports = class Launcher {
 
 	determineBreakParameters() {
 		if (config.actionsBetweenBreaks && config.breakTime) {
-			console.log('Determining parameters for the next break...');
+			logger.info('Determining parameters for the next break...');
 			(this.breakParameters.actionsBeforeNextBreak = Array.isArray(config.actionsBetweenBreaks)
 				? utils.getRandomNumber(...config.actionsBetweenBreaks)
 				: config.actionsBeforeNextBreak),
 			(this.breakParameters.breakTime = Array.isArray(config.breakTime) ? utils.getRandomNumber(...config.breakTime) : config.breakTime);
-			console.log('Number of actions before the next break : %d.', this.breakParameters.actionsBeforeNextBreak);
-			console.log('Duration of next break : %d seconds.', this.breakParameters.breakTime);
+			logger.info('Number of actions before the next break : %d.', this.breakParameters.actionsBeforeNextBreak);
+			logger.info('Duration of next break : %d seconds.', this.breakParameters.breakTime);
 		}
 	}
 
 	async makeBreak() {
 		if (!config.commit) await utils.randomSleep(2);
 		else if (this.breakParameters.actionsBeforeNextBreak && --this.breakParameters.actionsBeforeNextBreak == 0) {
-			console.log('Time for a break, pausing the process for %d seconds...', this.breakParameters.breakTime);
+			logger.info('Time for a break, pausing the process for %d seconds...', this.breakParameters.breakTime);
 			await utils.randomSleep(this.breakParameters.breakTime); // time for a break
 			this.determineBreakParameters(); // reset the actions counter and the break time
 		} else await utils.randomSleep(config.intervalBetweenActions[0], config.intervalBetweenActions[1]);
-		console.log(this.breakParameters.actionsBeforeNextBreak);
+		logger.info(this.breakParameters.actionsBeforeNextBreak);
 	}
 };

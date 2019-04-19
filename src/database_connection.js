@@ -1,5 +1,7 @@
 const mysql = require('mysql');
 
+const logger = require('./logger');
+
 module.exports = class DatabaseConnection {
 	constructor(config) {
 		this.table = 'facebook_ad';
@@ -11,7 +13,7 @@ module.exports = class DatabaseConnection {
 		if (this.connection.state == 'authenticated')
 			return true;
 
-		console.log('Connection to the database...');
+		logger.info('Connection to the database...');
 		return new Promise((resolve, reject) => {
 			this.connection.on('error', (err) => {
 				if(err.code === 'PROTOCOL_CONNECTION_LOST') {
@@ -25,7 +27,7 @@ module.exports = class DatabaseConnection {
 			this.connection.connect((err) => {
 				if (err) reject(err);
 				else {
-					console.log('Connected to the database.');
+					logger.info('Connected to the database.');
 					resolve();
 				}
 			});
@@ -37,7 +39,7 @@ module.exports = class DatabaseConnection {
 			this.connection.end((err) => {
 				if (err) reject(err);
 				else {
-					console.log('Connection to the database closed.');
+					logger.info('Connection to the database closed.');
 					resolve();
 				}
 			});
@@ -66,33 +68,33 @@ module.exports = class DatabaseConnection {
 
 	async insertItem(item) {
 		const query = buildQuery(item);
-		//console.debug(query);
+		//logger.debug(query);
 
 		await sendQuery.call(this, 'INSERT INTO ' + this.table + ' SET ' + query[0], query[1]);
-		console.log('Item "%s" inserted into database.', item.id);
+		logger.info('Item "%s" inserted into database.', item.id);
 	}
 
 	async updateItem(item) {
 		const query = buildQuery(item, ['id', 'oldTitle']);
-		//console.debug(query);
+		//logger.debug(query);
 
 		await sendQuery.call(this, 'UPDATE ' + this.table + ' SET ' + query[0] + ' WHERE id = ' + item.id, query[1]);
-		console.log('Item "%s" updated into database.', item.id);
+		logger.info('Item "%s" updated into database.', item.id);
 	}
 
 	async removeItem(item) {
 		await sendQuery.call(this, 'DELETE FROM ' + this.table + ' WHERE id = ' + item.id);
-		console.log('Item "%s" deleted from database.', item.id);
+		logger.info('Item "%s" deleted from database.', item.id);
 	}
 
 	async countItems() {
 		const result = await sendQuery.call(this, 'SELECT COUNT(id) AS counter FROM ' + this.table);
-		console.log(result[0].counter + ' items currently into the database.');
+		logger.info(result[0].counter + ' items currently into the database.');
 	}
 
 	async clearItems() {
 		await sendQuery.call(this, 'TRUNCATE TABLE ' + this.table);
-		console.log('All items has been removed.');
+		logger.info('All items has been removed.');
 	}
 };
 
@@ -101,7 +103,7 @@ function sendQuery(query, values) {
 		this.connection.query(query, values, (err, result) => {
 			if (err) {
 				if (err.code == 'PROTOCOL_CONNECTION_LOST') { // actually it should never happen
-					console.log('Reconnection to the database...');
+					logger.info('Reconnection to the database...');
 					this.connection = mysql.createConnection(this.config);
 					this.connect().then(sendQuery.call(this, query, values).then(resolve, reject), reject);
 				}

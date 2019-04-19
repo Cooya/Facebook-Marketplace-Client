@@ -1,6 +1,8 @@
 const pup = require('@coya/puppy');
 const utils = require('@coya/utils');
 
+const logger = require('./logger');
+
 const marketplaceUrl = 'https://www.facebook.com/marketplace/selling';
 
 module.exports = class ItemsSeller {
@@ -36,7 +38,7 @@ module.exports = class ItemsSeller {
 
 	async open() {
 		// open browser and load cookies
-		this.browser = await pup.runBrowser({headless: this.headless});
+		this.browser = await pup.runBrowser({headless: this.headless, logger});
 		this.page = await pup.createPage(this.browser, this.cookiesFile);
 
 		this.page.on('response', async (response) => {
@@ -47,17 +49,17 @@ module.exports = class ItemsSeller {
 					.postData()
 					.indexOf('MARKETPLACE_SELLING_ITEM_IMAGE_WIDTH') != -1
 			) {
-				console.log('Processing ads list...');
+				logger.info('Processing ads list...');
 				let json;
 				try {
 					json = await response.json();
 				} catch (e) {
 					if (e.message == 'Protocol error (Network.getResponseBody): No resource with given identifier found') {
-						console.error('No resource with given identifier found.');
+						logger.error('No resource with given identifier found.');
 						return;
 					}
 					if (e.message.indexOf('Unexpected token') !== -1) {
-						console.error('Bad JSON received.');
+						logger.error('Bad JSON received.');
 						return;
 					}
 					throw e;
@@ -65,7 +67,7 @@ module.exports = class ItemsSeller {
 				json.data.viewer.selling_feed_one_page.edges.forEach((ad) => {
 					if (!this.fbIds[ad.node.group_commerce_item_title]) this.fbIds[ad.node.group_commerce_item_title] = ad.node.id;
 				});
-				//console.debug(this.fbIds);
+				//logger.debug(this.fbIds);
 				this.adsListReceived = true;
 			}
 		});
@@ -81,11 +83,11 @@ module.exports = class ItemsSeller {
 			this.adsListReceived = false;
 			while (true) {
 				// wait for the request response from the graphql api
-				console.log('Reloading the page...');
+				logger.info('Reloading the page...');
 				await pup.goTo(this.page, this.page.url());
-				console.log('Waiting until the item has been found into the selling list.');
+				logger.info('Waiting until the item has been found into the selling list.');
 				if (await utils.waitForValue(this.adsListReceived, true)) break;
-				console.log('Item found.');
+				logger.info('Item found.');
 			}
 		}
 	}
@@ -98,15 +100,15 @@ module.exports = class ItemsSeller {
 
 		const found = await pup.infiniteScroll(this.page, async () => {
 			const title = item.oldTitle || item.title;
-			console.debug('Looking for ad "' + title + '"...');
+			logger.debug('Looking for ad "' + title + '"...');
 			let actionSelectorButton;
 			for (let itemContainer of await this.page.$$('div.clearfix[direction="left"]')) {
 				if (!(await itemContainer.$('section')))
 					// if false, it means this is a comment so we skip it
 					continue;
-				console.debug(await itemContainer.$eval('span[lines="2"] > span', (node) => node.innerText));
+				logger.debug(await itemContainer.$eval('span[lines="2"] > span', (node) => node.innerText));
 				if (await itemContainer.$('span[title="' + title + '"')) {
-					console.debug('Ad found into the marketplace.');
+					logger.debug('Ad found into the marketplace.');
 					actionSelectorButton = await itemContainer.$('a > span > i[alt=""]');
 					await actionSelectorButton.click();
 					await this.page.waitForSelector('li[role="presentation"] > a[role="menuitem"]');
@@ -115,12 +117,12 @@ module.exports = class ItemsSeller {
 					return true;
 				}
 			}
-			console.debug('Ad not found yet into the marketplace.');
+			logger.debug('Ad not found yet into the marketplace.');
 			return false;
 		});
 
 		if (!found) {
-			console.error('Cannot update or delete item "%s", not found in selling.', item.id);
+			logger.error('Cannot update or delete item "%s", not found in selling.', item.id);
 			await utils.randomSleep(3);
 		}
 		return found;
@@ -128,7 +130,7 @@ module.exports = class ItemsSeller {
 
 	async close() {
 		await this.browser.close();
-		console.log('Seller closed.');
+		logger.info('Seller closed.');
 	}
 };
 
@@ -144,7 +146,7 @@ async function goToMarketPlace() {
 }
 
 async function logIn() {
-	console.log('Logging in...');
+	logger.info('Logging in...');
 	const loginValue = await pup.value(this.page, '#email');
 	if (loginValue) await emptyInput(this.page, '#email');
 	await this.page.type('#email', this.login);
@@ -155,14 +157,14 @@ async function logIn() {
 	await this.page.waitForNavigation();
 	const loginButton = await this.page.$('#loginbutton');
 	if (loginButton) throw Error('The log in has failed.');
-	console.log('Logged in.');
+	logger.info('Logged in.');
 }
 
 async function openFormModal(formType) {
 	const formTypeSelector = 'div[aria-label="Create a new sale post on Marketplace"] a[role="button"] i';
 	const formInputSelector = 'div[aria-label="Create a new sale post on Marketplace"] input[placeholder="What are you selling?"]';
 
-	console.log('Opening form modal...');
+	logger.info('Opening form modal...');
 	if (formType == 'sell') {
 		await this.page.click('div[role=navigation]:nth-child(1) button');
 		await this.page.waitForSelector(formTypeSelector + ', ' + formInputSelector);
@@ -181,16 +183,16 @@ async function fillSellFormWrapped(formType, item) {
 		try {
 			await openFormModal.call(this, formType);
 			await this.fillSellForm(item);
-			console.log('Form submitted sucessfully.');
+			logger.info('Form submitted sucessfully.');
 			return;
 		} catch (e) {
 			// display the error and take a screenshot
-			console.error('An error has occurred while filling out the form :');
-			console.error(e);
+			logger.error('An error has occurred while filling out the form :');
+			logger.error(e);
 			await pup.screenshot(this.page, this.screenshotsFolder);
 
 			// close the modal and try again
-			console.log('Trying again to fill out the form...');
+			logger.info('Trying again to fill out the form...');
 			await this.page.click('button.layerCancel'); // close the modal
 			await utils.randomSleep(1, 2);
 			const confirmationBox = await this.page.$('div.uiOverlayFooter button');
@@ -264,13 +266,13 @@ async function fillSellForm(item) {
 			pictureUploadError = await this.page.$('div[aria-haspopup="true"] p');
 			if (pictureUploadError) {
 				// error in pictures upload
-				console.error('Error in pictures upload, trying again...');
+				logger.error('Error in pictures upload, trying again...');
 				await cleanPictures();
 			} else throw e;
 		}
 	}
 	if (pictureUploadError) throw new Error('One or several pictures are invalid for the item "' + item.title + '".');
-	console.log('Pictures uploaded successfully.');
+	logger.info('Pictures uploaded successfully.');
 	await utils.randomSleep(1, 2);
 
 	// submit the form if commit mode is enabled
@@ -290,7 +292,7 @@ async function fillSellForm(item) {
 		await this.page.click('div.uiOverlayFooter button:nth-child(1)');
 		await this.page.waitForSelector('div[role=dialog] button[type="submit"][aria-haspopup="true"]', {hidden: true});
 	}
-	console.log('Sell form filled successfuly.');
+	logger.info('Sell form filled successfuly.');
 }
 
 async function editItem(item) {
@@ -312,7 +314,7 @@ async function removeItem() {
 			hidden: true
 		});
 	}
-	console.log('Item removed sucessfully.');
+	logger.info('Item removed sucessfully.');
 }
 
 async function emptyInput(page, inputSelector) {

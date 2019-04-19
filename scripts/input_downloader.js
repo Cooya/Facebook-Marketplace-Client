@@ -1,5 +1,5 @@
-const utils = require('@coya/utils');
 const path = require('path');
+const utils = require('@coya/utils');
 
 const config = require('../config');
 
@@ -34,7 +34,7 @@ const routes = {
 		process.exit(1);
 	}
 
-	console.log('Getting new XML %s input file from the API...', route);
+	console.info('Getting new XML %s input file from the API...', route);
 	await utils.downloadFile(routes[route].url, path.dirname(routes[route].file), path.basename(routes[route].file));
-	console.log('XML %s input file downloaded from the API.', route);
+	console.info('XML %s input file downloaded from the API.', route);
 })();
