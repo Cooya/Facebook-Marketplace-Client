@@ -12,6 +12,7 @@ Copier le fichier "assets/config.template" à la racine du projet en renommant "
 module.exports  = {
   picturesFolder: 'assets/pictures/',
   screenshotsFolder: 'assets/screenshots/',
+  logsFolder: 'assets/logs/',
   cookiesFile: 'assets/cookies.json',
   insertInputFile: 'assets/insertInput.xml', // fichier d'entrée contenant les annonces à poster
   updateInputFile: 'assets/updateInput.xml', // fichier d'entrée contenant les annonces à modifier

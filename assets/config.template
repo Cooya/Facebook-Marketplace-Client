@@ -1,6 +1,7 @@
 module.exports  = {
     picturesFolder: 'assets/pictures/',
     screenshotsFolder: 'assets/screenshots/',
+    logsFolder: 'assets/logs/',
     cookiesFile: 'assets/cookies.json',
     insertInputFile: 'assets/insertInput.xml', // fichier d'entrée contenant les annonces à poster
     updateInputFile: 'assets/updateInput.xml', // fichier d'entrée contenant les annonces à modifier
@@ -15,6 +16,12 @@ module.exports  = {
         database: '',
         schemaFile: 'assets/db_schema.sql'
 	},
+    smptp: { // identifiants pour se connecter au serveur SMTP et envoyer des emails
+        host: '',
+		port: 587,
+		login: '',
+		password: ''
+    },
     login: '', // votre identifiant Facebook
     password: '', // votre mot de passe Facebook
     itemCategory: 'Property For Sale', // la catégorie des objets à mettre en vente (doit être en anglais)

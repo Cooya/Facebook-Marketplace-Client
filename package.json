@@ -4,6 +4,7 @@
   "description": "",
   "main": "src/index.js",
   "dependencies": {
+    "@coya/contact": "^0.1.0",
     "@coya/puppy": "^0.1.0",
     "@coya/utils": "^1.5.4",
     "facebook-chat-api": "^1.6.0",

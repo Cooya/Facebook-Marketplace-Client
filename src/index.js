@@ -1,9 +1,12 @@
+const Contact = require('@coya/contact');
+const utils = require('@coya/utils');
+
 const config = require('../config');
 const Launcher = require('./launcher');
 const logger = require('./logger');
-const utils = require('@coya/utils');
 
 utils.setLogger(logger);
+const contact = new Contact(config.smtp);
 
 (async function main() {
 	if (!config.login || !config.password)
@@ -36,8 +39,11 @@ utils.setLogger(logger);
 			else logger.info('The item has not been found.');
 		}
 		await launcher.itemsManager.end();
+		if(process.env.NODE_ENV == 'prod' || process.env.NODE_ENV == 'production')
+			contact.sendEmailToMySelf('Report from Facebook Marketplace Client', 'The script has terminated without error.');
 	} catch (e) {
 		logger.error(e);
-		process.exit(0); // 0 allows to avoid NPM verbose output
+		if(process.env.NODE_ENV == 'prod' || process.env.NODE_ENV == 'production')
+			contact.sendEmailToMySelf('Report from Facebook Marketplace Client', e);
 	}
 })();
