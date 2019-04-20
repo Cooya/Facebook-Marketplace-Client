@@ -59,7 +59,7 @@ function createDatabase(connection, name) {
 		connection.query('CREATE DATABASE `' + name + '`', (err) => {
 			if (err) {
 				if(err.message.indexOf('ER_DB_CREATE_EXISTS') != -1) {
-					console.warn('Database "' + name + '" already exists.');
+					console.info('Database "' + name + '" already exists.');
 					resolve(false);
 				}
 				else reject(err);

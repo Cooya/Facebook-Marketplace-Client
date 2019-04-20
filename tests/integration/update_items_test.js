@@ -2,6 +2,7 @@ const assert = require('assert');
 const mock = require('simple-mock').mock;
 
 const config = require('../../config');
+const logger = require('../../src/logger');
 const setup = require('./setup');
 
 describe('items update : testing items to edit loading from file and database', () => {
@@ -20,8 +21,8 @@ describe('items update : testing items to edit loading from file and database', 
 		let errors;
 
 		before(async () => {
-			warnings = mock(console, 'warn');
-			errors = mock(console, 'error');
+			warnings = mock(logger, 'warning');
+			errors = mock(logger, 'error');
 		});
 
 		it('should be 0 present item, 1 invalid and 3 not found into database', async () => {

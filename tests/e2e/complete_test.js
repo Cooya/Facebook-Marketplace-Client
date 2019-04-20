@@ -5,6 +5,7 @@ const utils = require('@coya/utils');
 
 const config = require('../../config');
 const Launcher = require('../../src/launcher');
+const logger = require('../../src/logger');
 
 describe('complete process test : insert, update and delete', () => {
 	let launcher;
@@ -31,8 +32,8 @@ describe('complete process test : insert, update and delete', () => {
 	});
 
 	beforeEach(() => {
-		warnings = mock(console, 'warn');
-		errors = mock(console, 'error');
+		warnings = mock(logger, 'warning');
+		errors = mock(logger, 'error');
 	});
 
 	after(async () => {

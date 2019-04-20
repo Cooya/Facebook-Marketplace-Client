@@ -2,6 +2,7 @@ const assert = require('assert');
 const mock = require('simple-mock').mock;
 
 const config = require('../../config');
+const logger = require('../../src/logger');
 const setup = require('./setup');
 
 describe('items insertion : testing items to insert loading from file and database', () => {
@@ -19,7 +20,7 @@ describe('items insertion : testing items to insert loading from file and databa
 		let errors;
 
 		before(async () => {
-			errors = mock(console, 'error');
+			errors = mock(logger, 'error');
 		});
 
 		it('should be 2 present items and 4 absent items, that means 4 errors must have been logged', async () => {

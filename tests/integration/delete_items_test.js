@@ -2,6 +2,7 @@ const assert = require('assert');
 const mock = require('simple-mock').mock;
 
 const config = require('../../config');
+const logger = require('../../src/logger');
 const setup = require('./setup');
 
 describe('items deletion', () => {
@@ -20,8 +21,8 @@ describe('items deletion', () => {
 		let errors;
 
 		before(async () => {
-			warnings = mock(console, 'warn');
-			errors = mock(console, 'error');
+			warnings = mock(logger, 'warning');
+			errors = mock(logger, 'error');
 
 			// load items to sell into database and mark the first one as for sale
 			const items = await launcher.itemsManager.loadItemsToSell(config.insertInputFile);
@@ -73,7 +74,7 @@ describe('items deletion', () => {
 		let warnings;
 
 		before(async () => {
-			warnings = mock(console, 'warn');
+			warnings = mock(logger, 'warning');
 		});
 
 		it('should reinsert the item', async () => {

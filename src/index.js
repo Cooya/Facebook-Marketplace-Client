@@ -1,6 +1,9 @@
 const config = require('../config');
 const Launcher = require('./launcher');
 const logger = require('./logger');
+const utils = require('@coya/utils');
+
+utils.setLogger(logger);
 
 (async function main() {
 	if (!config.login || !config.password)
