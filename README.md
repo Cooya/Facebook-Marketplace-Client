@@ -29,9 +29,9 @@ module.exports  = {
   },
   smtp: { // identifiants pour se connecter au serveur SMTP et envoyer des emails
     host: '',
-	  port: 587,
-	  login: '',
-	  password: ''
+    port: 587,
+    login: '',
+    password: ''
   },
   login: 'TO_COMPLETE', // votre identifiant Facebook
   password: 'TO_COMPLETE', // votre mot de passe Facebook
