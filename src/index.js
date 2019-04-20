@@ -6,7 +6,7 @@ const Launcher = require('./launcher');
 const logger = require('./logger');
 
 utils.setLogger(logger);
-const contact = new Contact(config.smtp);
+const contact = config.smtp && config.smtp.host && (process.env.NODE_ENV == 'prod' || process.env.NODE_ENV == 'production') && new Contact(config.smtp);
 
 (async function main() {
 	if (!config.login || !config.password)
@@ -39,11 +39,9 @@ const contact = new Contact(config.smtp);
 			else logger.info('The item has not been found.');
 		}
 		await launcher.itemsManager.end();
-		if(process.env.NODE_ENV == 'prod' || process.env.NODE_ENV == 'production')
-			contact.sendEmailToMySelf('Report from Facebook Marketplace Client', 'The script has terminated without error.');
+		if(contact) contact.sendEmailToMySelf('Report from Facebook Marketplace Client', 'The script has terminated without error.');
 	} catch (e) {
 		logger.error(e);
-		if(process.env.NODE_ENV == 'prod' || process.env.NODE_ENV == 'production')
-			contact.sendEmailToMySelf('Report from Facebook Marketplace Client', e);
+		if(contact) contact.sendEmailToMySelf('Report from Facebook Marketplace Client', e);
 	}
 })();
