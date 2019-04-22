@@ -12,6 +12,7 @@ module.exports = class ItemsSeller {
 		this.cookiesFile = config.cookiesFile;
 		this.commit = config.commit;
 		this.headless = config.headless;
+		this.proxy = config.proxy && config.proxy.url && config.proxy;
 		this.screenshotsFolder = config.screenshotsFolder;
 		this.fbIds = {};
 		this.adsListReceived = false;
@@ -38,7 +39,7 @@ module.exports = class ItemsSeller {
 
 	async open() {
 		// open browser and load cookies
-		this.browser = await pup.runBrowser({headless: this.headless, logger});
+		this.browser = await pup.runBrowser({headless: this.headless, proxy: this.proxy, logger});
 		this.page = await pup.createPage(this.browser, this.cookiesFile);
 
 		this.page.on('response', async (response) => {

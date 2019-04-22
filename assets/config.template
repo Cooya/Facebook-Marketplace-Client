@@ -22,6 +22,11 @@ module.exports  = {
 		login: '',
 		password: ''
     },
+    proxy: { // identifiants pour l'utilisation d'un proxy
+		url: '',
+		username: '',
+		password: ''
+	},
     login: '', // votre identifiant Facebook
     password: '', // votre mot de passe Facebook
     itemCategory: 'Property For Sale', // la catégorie des objets à mettre en vente (doit être en anglais)
