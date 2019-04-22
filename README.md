@@ -28,10 +28,15 @@ module.exports  = {
     schemaFile: 'assets/db_schema.sql'
   },
   smtp: { // identifiants pour se connecter au serveur SMTP et envoyer des emails
-    host: 'TO_COMPLETE',
+    host: 'OPTIONAL',
     port: 587,
-    login: 'TO_COMPLETE',
-    password: 'TO_COMPLETE'
+    login: 'OPTIONAL',
+    password: 'OPTIONAL'
+  },
+  proxy: { // identifiants pour l'utilisation d'un proxy 
+    url: 'OPTIONAL',
+    username: 'OPTIONAL',
+    password: 'OPTIONAL'
   },
   login: 'TO_COMPLETE', // votre identifiant Facebook
   password: 'TO_COMPLETE', // votre mot de passe Facebook
