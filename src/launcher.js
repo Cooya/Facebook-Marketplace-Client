@@ -51,16 +51,17 @@ module.exports = class Launcher {
 				await action.processMethod(items);
 				logger.info('Process done.');
 			} catch (e) {
+				await this.itemsSeller.close();
 				if (e.message == 'Page crashed!') {
 					logger.error('The page has crashed, restarting the process...');
-					await this.itemsSeller.close();
 					continue;
 				} else if (e.message.indexOf('net::ERR_NAME_NOT_RESOLVED') != -1) {
 					logger.error('The DNS request has failed, restarting the process...');
-					await this.itemsSeller.close();
 					continue;
 				} else throw e;
 			}
+
+			// end of the process
 			await this.itemsSeller.close();
 			break;
 		}
