@@ -20,7 +20,7 @@ module.exports = (() => {
 
 	if (process.env.NODE_ENV == 'production' || process.env.NODE_ENV == 'prod') {
 		transport = new transports.File({
-			filename: logsFolder + new Date().toISOString() + '.log',
+			filename: (logsFolder || '') + new Date().toISOString() + '.log',
 			level: 'debug'
 		});
 		exitOnError = false;
