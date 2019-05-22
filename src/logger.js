@@ -18,9 +18,21 @@ module.exports = (() => {
 		})
 	];
 
+	let action = '';
+	for(let i = 0; i < process.argv.length; ++i) {
+		if(process.argv[i] == '--action') {
+			action = process.argv[i + 1];
+			break;
+		}
+		if(process.argv[i].indexOf('chat_server.js') !== -1) {
+			action = 'chatbot';
+			break;
+		}
+	}
+
 	if (process.env.NODE_ENV == 'production' || process.env.NODE_ENV == 'prod') {
 		transport = new transports.File({
-			filename: (logsFolder || '') + new Date().toISOString() + '.log',
+			filename: (logsFolder || '') + (action && (action + '-')) + new Date().toISOString() + '.log',
 			level: 'debug'
 		});
 		exitOnError = false;
