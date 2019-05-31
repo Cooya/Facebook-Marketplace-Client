@@ -5,8 +5,6 @@ const config = require('../../config');
 const Launcher = require('../../src/launcher');
 const ItemsSeller = require('../../src/items_seller');
 
-process.env.NODE_ENV = 'test';
-
 module.exports = async () => {
 	mock(utils, 'downloadFile').callFn(() => Promise.resolve('tests/integration/pic.jpg'));
 	const mysql = config.mysql;

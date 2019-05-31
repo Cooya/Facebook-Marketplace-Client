@@ -55,20 +55,17 @@ module.exports = class ItemsSeller {
 				try {
 					json = await response.json();
 				} catch (e) {
-					if (e.message == 'Protocol error (Network.getResponseBody): No resource with given identifier found') {
-						logger.error('No resource with given identifier found.');
-						return;
-					}
-					if (e.message.indexOf('Unexpected token') !== -1) {
-						logger.error('Bad JSON received.');
-						return;
-					}
+					if (e.message == 'Protocol error (Network.getResponseBody): No resource with given identifier found')
+						return logger.error('No resource with given identifier found.');
+					if (e.message.indexOf('Unexpected token') !== -1)
+						return logger.error('Bad JSON received.');
+					if (e.message == 'Protocol error (Network.getResponseBody): Target closed.')
+						return logger.error('The page has been closed.');
 					throw e;
 				}
 				json.data.viewer.selling_feed_one_page.edges.forEach((ad) => {
 					if (!this.fbIds[ad.node.group_commerce_item_title]) this.fbIds[ad.node.group_commerce_item_title] = ad.node.id;
 				});
-				//logger.debug(this.fbIds);
 				this.adsListReceived = true;
 			}
 		});
@@ -102,16 +99,13 @@ module.exports = class ItemsSeller {
 		const found = await pup.infiniteScroll(this.page, async () => {
 			const title = item.oldTitle || item.title;
 			logger.debug('Looking for ad "' + title + '"...');
-			let actionSelectorButton;
-			for (let itemContainer of await this.page.$$('div.clearfix[direction="left"]')) {
-				if (!(await itemContainer.$('section')))
-					// if false, it means this is a comment so we skip it
-					continue;
-				logger.debug(await itemContainer.$eval('span[lines="2"] > span', (node) => node.innerText));
-				if (await itemContainer.$('span[title="' + title + '"')) {
+			for (let adSection of await this.page.$$('div > section')) {
+				logger.debug(await adSection.$eval('span[lines="2"] > span', (node) => node.innerText));
+				if (await adSection.$('span[title="' + title + '"')) {
 					logger.debug('Ad found into the marketplace.');
-					actionSelectorButton = await itemContainer.$('a > span > i[alt=""]');
-					await actionSelectorButton.click();
+					let parent = (await adSection.$x('..'))[0];
+					await (await parent.$('a > span > i[alt=""]')).click();
+					logger.debug('Waiting for dropdown list opening...');
 					await this.page.waitForSelector('li[role="presentation"] > a[role="menuitem"]');
 					await utils.randomSleep(1, 2);
 					await actions[action].call(this, item);
@@ -278,7 +272,7 @@ async function fillSellForm(item) {
 
 	// submit the form if commit mode is enabled
 	if (this.commit) {
-		const submitButtonSelector = 'div[role=dialog] button[type="submit"][data-testid="react-composer-post-button"]';
+		const submitButtonSelector = 'div[role=dialog] button.selected[type="submit"]';
 		if ((await pup.attribute(this.page, submitButtonSelector, 'innerText')) == 'Next') {
 			await this.page.click(submitButtonSelector);
 			await utils.randomSleep(3, 5);

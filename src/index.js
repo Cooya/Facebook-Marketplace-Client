@@ -39,9 +39,9 @@ const contact = config.smtp && config.smtp.host && (process.env.NODE_ENV == 'pro
 			else logger.info('The item has not been found.');
 		}
 		await launcher.itemsManager.end();
-		if(contact) contact.sendEmailToMySelf('Report from Facebook Marketplace Client', 'The script has terminated without error.');
+		if(contact) contact.sendEmail('Report from Facebook Marketplace Client', 'The script has terminated without error.');
 	} catch (e) {
 		logger.error(e);
-		if(contact) contact.sendEmailToMySelf('Report from Facebook Marketplace Client', e);
+		if(contact) contact.sendEmail('Report from Facebook Marketplace Client', e);
 	}
 })();

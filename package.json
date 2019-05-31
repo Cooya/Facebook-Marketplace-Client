@@ -4,7 +4,7 @@
   "description": "",
   "main": "src/index.js",
   "dependencies": {
-    "@coya/contact": "^0.1.0",
+    "@coya/contact": "^0.1.2",
     "@coya/puppy": "^0.1.1",
     "@coya/utils": "^1.5.4",
     "facebook-chat-api": "^1.6.0",
@@ -19,9 +19,9 @@
     "simple-mock": "^0.8.0"
   },
   "scripts": {
-    "test": "NODE_ENV=test eslint . && mocha $(find tests -name '*.js')",
-    "integration-tests": "NODE_ENV=test mocha tests/integration",
-    "e2e-tests": "NODE_ENV=test mocha tests/e2e",
+    "test": "eslint . && NODE_ENV=debug mocha $(find tests -name '*.js')",
+    "integration-tests": "NODE_ENV=debug mocha tests/integration",
+    "e2e-tests": "NODE_ENV=debug mocha tests/e2e",
     "lint": "eslint .",
     "dev": "NODE_ENV=dev node src/index.js --action posting",
     "start": "NODE_ENV=prod node src/index.js --action posting",
